@@ -1,20 +1,29 @@
 import pandas as pd
-
 from api.client import WorldBankClient
-from config import INDICATORS, RAW_DATA_DIR
-
+from config import RAW_DATA_DIR
+from indicators import (
+    ECONOMIC_INDICATORS,
+    GOVERNANCE_INDICATORS,
+)
+from pathlib import Path
 
 client = WorldBankClient()
 
 
+# =============================================================================
+# DATAFRAME
+# =============================================================================
+
 def create_dataframe(data: list, column_name: str) -> pd.DataFrame:
     """
-    Convert World Bank JSON data into a clean DataFrame.
+    Convert World Bank JSON into DataFrame.
     """
 
     df = pd.DataFrame(data)
 
-    df["country"] = df["country"].apply(lambda x: x["value"])
+    df["country"] = df["country"].apply(
+        lambda x: x["value"]
+    )
 
     df = df[
         [
@@ -25,49 +34,119 @@ def create_dataframe(data: list, column_name: str) -> pd.DataFrame:
         ]
     ]
 
-    df = df.rename(columns={"value": column_name})
+    df = df.rename(
+        columns={
+            "value": column_name
+        }
+    )
 
     return df
 
 
-def save_dataframe(df: pd.DataFrame, filename: str) -> None:
-    """
-    Save dataframe into data/raw.
-    """
+# =============================================================================
+# SAVE
+# =============================================================================
 
-    RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+def save_dataframe(
+    df: pd.DataFrame,
+    filename: str,
+) -> None:
+
+    RAW_DATA_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     filepath = RAW_DATA_DIR / filename
 
-    df.to_csv(filepath, index=False)
+    df.to_csv(
+        filepath,
+        index=False,
+    )
 
     print(f"Saved: {filepath}")
 
 
-def download_all_datasets() -> None:
+# =============================================================================
+# DOWNLOAD
+# =============================================================================
+
+def download_indicators(indicators: dict) -> None:
     """
-    Download every indicator defined in config.py.
+    Download all indicators.
+
+    - Skip files that already exist.
+    - Continue if one indicator fails.
     """
 
-    for name, indicator in INDICATORS.items():
+    RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    for name, indicator in indicators.items():
+
+        filepath = RAW_DATA_DIR / f"{name}.csv"
+
+        # ---------------------------------------------------
+        # Cache
+        # ---------------------------------------------------
+
+        if filepath.exists():
+
+            print(f"✓ {name} already exists")
+
+            continue
 
         print(f"\nDownloading {name}")
 
-        data = client.download(indicator)
+        try:
 
-        df = create_dataframe(data, name)
+            data = client.download(indicator)
 
-        save_dataframe(df, f"{name}.csv")
+            df = create_dataframe(
+                data,
+                name,
+            )
+
+            save_dataframe(
+                df,
+                f"{name}.csv",
+            )
+
+            print(f"✓ {name} downloaded")
+
+        except Exception as e:
+
+            print(f"✗ Failed downloading {name}")
+
+            print(e)
+
+            continue
 
 
-def load_all_datasets() -> dict[str, pd.DataFrame]:
+def download_all_datasets() -> None:
     """
-    Load every CSV inside data/raw.
+    Download every dataset used by the project.
     """
+
+    print("\nDownloading Economic Indicators")
+    download_indicators(ECONOMIC_INDICATORS)
+    
+    # print("\nDownloading Governance Indicators")
+
+    # download_indicators(GOVERNANCE_INDICATORS)
+
+
+# =============================================================================
+# LOAD
+# =============================================================================
+
+def load_all_datasets() -> dict:
 
     datasets = {}
 
-    for file in sorted(RAW_DATA_DIR.glob("*.csv")):
+    for file in sorted(
+        RAW_DATA_DIR.glob("*.csv")
+    ):
+
         datasets[file.stem] = pd.read_csv(file)
 
     return datasets

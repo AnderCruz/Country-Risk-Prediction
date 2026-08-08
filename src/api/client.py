@@ -1,14 +1,11 @@
+import time
 import requests
-
 
 class WorldBankClient:
 
     BASE_URL = "https://api.worldbank.org/v2/country/all/indicator"
 
     def download(self, indicator: str) -> list:
-        """
-        Download all pages from a World Bank indicator.
-        """
 
         url = f"{self.BASE_URL}/{indicator}"
 
@@ -24,13 +21,37 @@ class WorldBankClient:
                 "per_page": 1000,
             }
 
-            response = requests.get(
-                url,
-                params=params,
-                timeout=30,
-            )
+            success = False
 
-            response.raise_for_status()
+            for attempt in range(3):
+
+                try:
+
+                    response = requests.get(
+                        url,
+                        params=params,
+                        timeout=90,
+                    )
+
+                    response.raise_for_status()
+
+                    success = True
+
+                    break
+
+                except requests.exceptions.RequestException:
+
+                    print(
+                        f"Retry {attempt+1}/3 (page {page})..."
+                    )
+
+                    time.sleep(3)
+
+            if not success:
+
+                raise Exception(
+                    f"Failed downloading {indicator}"
+                )
 
             data = response.json()
 

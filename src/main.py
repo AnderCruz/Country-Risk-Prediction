@@ -1,25 +1,41 @@
-from config import PROCESSED_DATA_DIR
-from data.loader import download_all_datasets, load_all_datasets
-from data.merger import merge_datasets
+from data.loader import (
+    download_all_datasets,
+    load_all_datasets,
+)
+
+from data.merger import (
+    merge_datasets,
+    save_dataset,
+)
+
 from data.validator import DataValidator
+
 from features.clean_data import clean_dataset
 from features.engineering import create_features
 from features.eda import generate_eda_report
+from features.crci import CountryRiskIndex
+
 from models.train import train_model
 from models.evaluate import evaluate_model
+from features.imputer import CountryDataImputer
+from models.importance import feature_importance_report
 
+
+# =============================================================================
+# MAIN PIPELINE
+# =============================================================================
 
 def main():
 
-    print("=" * 60)
+    print("=" * 70)
     print("Country Risk Prediction Platform")
-    print("=" * 60)
+    print("=" * 70)
 
     # -------------------------------------------------------------------------
-    # STEP 1 - Download data
+    # STEP 1 - Download datasets
     # -------------------------------------------------------------------------
 
-    print("\n[1/3] Downloading datasets...")
+    print("\n[1/7] Downloading datasets...")
 
     download_all_datasets()
 
@@ -27,7 +43,7 @@ def main():
     # STEP 2 - Load datasets
     # -------------------------------------------------------------------------
 
-    print("\n[2/3] Loading datasets...")
+    print("\n[2/7] Loading datasets...")
 
     datasets = load_all_datasets()
 
@@ -37,36 +53,71 @@ def main():
     # STEP 3 - Merge datasets
     # -------------------------------------------------------------------------
 
-    print("\n[3/3] Merging datasets...")
+    print("\n[3/7] Merging datasets...")
 
     merged = merge_datasets(datasets)
+
+    # -------------------------------------------------------------------------
+    # STEP 4 - Validate dataset
+    # -------------------------------------------------------------------------
+
+    print("\n[4/7] Validating dataset...")
 
     validator = DataValidator(merged)
 
     validator.run()
 
+    # -------------------------------------------------------------------------
+    # STEP 5 - Feature Engineering
+    # -------------------------------------------------------------------------
+
+    print("\n[5/7] Feature Engineering...")
+
     merged = clean_dataset(merged)
+
+    imputer = CountryDataImputer()
+
+    merged = imputer.transform(merged)
 
     merged = create_features(merged)
 
+    print("\nCalculating Economic Score...")
+
+    crci = CountryRiskIndex()
+
+    merged = crci.fit_transform(merged)
+
+
+
+    print("Economic Score created successfully.")
+
+
+    # -------------------------------------------------------------------------
+    # STEP 6 - Generate Reports
+    # -------------------------------------------------------------------------
+
+    print("\n[6/7] Generating reports...")
+
     generate_eda_report(merged)
 
-    PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    save_dataset(merged)
 
-    output_file = PROCESSED_DATA_DIR / "country_risk_dataset.csv"
+    print(f"\nFinal dataset shape: {merged.shape}")
 
-    merged.to_csv(output_file, index=False)
+    # -------------------------------------------------------------------------
+    # STEP 7 - Train Model
+    # -------------------------------------------------------------------------
 
-    print(f"\nDataset saved: {output_file}")
-
-    print(f"Final shape: {merged.shape}")
-
-    print("\nPipeline completed successfully!")
-
+    print("\n[7/7] Training Machine Learning model...")
 
     model, X_test, y_test, predictions = train_model(merged)
 
     evaluate_model(y_test, predictions)
+
+    feature_importance_report(
+        model,
+        X_test.columns
+    )
 
     print("\nPipeline completed successfully!")
 
