@@ -1,51 +1,247 @@
-Country Risk Prediction
+# 🌍 Country Risk Prediction
 
-End-to-end Machine Learning pipeline for predicting country risk using macroeconomic indicators from the World Bank.
+An end-to-end Data Science project that predicts country-level economic risk using macroeconomic indicators from the World Bank.
 
-Features
+This project demonstrates a complete Machine Learning pipeline, from automated data ingestion to model training, following software engineering best practices.
 
-✔ Automated data ingestion
+---
 
-✔ Data validation
+# Project Overview
 
-✔ Feature engineering
+The objective is to build a scalable platform capable of collecting, processing and modelling economic indicators to support country risk analysis.
 
-✔ Exploratory Data Analysis
+Current version includes:
 
-✔ Random Forest baseline model
+- Automated data ingestion from the World Bank API
+- Data validation and quality checks
+- Data cleaning
+- Feature engineering
+- Exploratory Data Analysis (EDA)
+- Baseline Machine Learning model (Random Forest)
+- Modular and scalable architecture
 
-✔ Modular architecture
+Future versions will integrate governance indicators, additional machine learning algorithms and an interactive dashboard.
 
-Technologies
+---
 
-Python
+# Architecture
 
-Pandas
+```
+                World Bank API
+                       │
+                       ▼
+              Data Ingestion Layer
+                       │
+                       ▼
+                 Data Validation
+                       │
+                       ▼
+                  Data Cleaning
+                       │
+                       ▼
+              Feature Engineering
+                       │
+                       ▼
+               Exploratory Analysis
+                       │
+                       ▼
+               Machine Learning
+                       │
+                       ▼
+                 Model Evaluation
+```
 
-Scikit-Learn
+---
 
-World Bank API
+# Project Structure
 
-Git
+```
+Country-Risk-Prediction/
 
-Project Structure
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── external/
+│
+├── docs/
+│
+├── notebooks/
+│
+├── reports/
+│
+├── src/
+│   ├── api/
+│   ├── data/
+│   ├── features/
+│   ├── models/
+│   ├── visualization/
+│   ├── utils/
+│   ├── config.py
+│   └── main.py
+│
+├── tests/
+│
+├── requirements.txt
+│
+└── README.md
+```
 
-...
+---
 
-Future Work
+# Technologies
 
-Worldwide Governance Indicators
+- Python
+- Pandas
+- NumPy
+- Scikit-Learn
+- Requests
+- Jupyter Notebook
+- World Bank API
+- Git
 
-XGBoost
+---
 
-LightGBM
+# Machine Learning Pipeline
 
-CatBoost
+Current pipeline:
 
-SHAP
+```
+Download Data
 
-Streamlit
+↓
 
-Docker
+Validation
 
-CI/CD
+↓
+
+Cleaning
+
+↓
+
+Feature Engineering
+
+↓
+
+EDA
+
+↓
+
+Train Model
+
+↓
+
+Model Evaluation
+```
+
+Current baseline model:
+
+- Random Forest Regressor
+
+Evaluation Metrics:
+
+- MAE
+- RMSE
+- R² Score
+
+---
+
+# Current Features
+
+Current dataset includes:
+
+- GDP per Capita
+- Population
+- Inflation
+- Life Expectancy
+- GDP Growth
+- Population Growth
+- Lag Features
+
+---
+
+# Future Improvements
+
+Planned roadmap:
+
+- Worldwide Governance Indicators (WGI)
+- Country Risk Score
+- XGBoost
+- LightGBM
+- CatBoost
+- Hyperparameter Tuning
+- SHAP Explainability
+- Streamlit Dashboard
+- Docker
+- CI/CD with GitHub Actions
+- Unit Testing
+- MLflow Experiment Tracking
+
+---
+
+# Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/Country-Risk-Prediction.git
+```
+
+Create a virtual environment
+
+```bash
+python -m venv .venv
+```
+
+Activate it
+
+Linux
+
+```bash
+source .venv/bin/activate
+```
+
+Windows
+
+```bash
+.venv\Scripts\activate
+```
+
+Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the project
+
+```bash
+python src/main.py
+```
+
+---
+
+# Project Status
+
+Current Version
+
+**v1.0.0**
+
+Status
+
+✅ Active Development
+
+---
+
+# Author
+
+**Anderson Cruz**
+
+Data Scientist | Machine Learning | Predictive Analytics
+
+LinkedIn:
+
+https://linkedin.com/in/anderjcruz
+
+GitHub:
+
+https://github.com/anderjcruz
