@@ -1,55 +1,68 @@
 # 🌍 Country Risk Prediction
 
-An end-to-end Data Science project that predicts country-level economic risk using macroeconomic indicators from the World Bank.
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-Latest-orange)
+![Status](https://img.shields.io/badge/Status-Active-success)
+![Version](https://img.shields.io/badge/Version-v1.0.0-blue)
 
-This project demonstrates a complete Machine Learning pipeline, from automated data ingestion to model training, following software engineering best practices.
+An end-to-end Data Science project that predicts country risk using macroeconomic indicators from the World Bank.
+
+The objective is to build a scalable Machine Learning platform capable of collecting, processing and modelling economic indicators to support country risk analysis.
 
 ---
 
-# Project Overview
+# Project Architecture
 
-The objective is to build a scalable platform capable of collecting, processing and modelling economic indicators to support country risk analysis.
+```
+                    World Bank API
+                           │
+                           ▼
+                 Data Ingestion Layer
+                           │
+                           ▼
+                    Data Validation
+                           │
+                           ▼
+                     Data Cleaning
+                           │
+                           ▼
+                 Feature Engineering
+                           │
+                           ▼
+                Exploratory Data Analysis
+                           │
+                           ▼
+                 Machine Learning Model
+                           │
+                           ▼
+                   Model Evaluation
+```
 
-Current version includes:
+---
+
+# Current Features
 
 - Automated data ingestion from the World Bank API
-- Data validation and quality checks
+- Modular project architecture
+- Data validation
 - Data cleaning
 - Feature engineering
-- Exploratory Data Analysis (EDA)
-- Baseline Machine Learning model (Random Forest)
-- Modular and scalable architecture
-
-Future versions will integrate governance indicators, additional machine learning algorithms and an interactive dashboard.
+- Automated EDA reports
+- Random Forest baseline model
+- Model evaluation
 
 ---
 
-# Architecture
+# Technologies
 
-```
-                World Bank API
-                       │
-                       ▼
-              Data Ingestion Layer
-                       │
-                       ▼
-                 Data Validation
-                       │
-                       ▼
-                  Data Cleaning
-                       │
-                       ▼
-              Feature Engineering
-                       │
-                       ▼
-               Exploratory Analysis
-                       │
-                       ▼
-               Machine Learning
-                       │
-                       ▼
-                 Model Evaluation
-```
+- Python 3.12
+- Pandas
+- NumPy
+- Scikit-Learn
+- Requests
+- Jupyter Notebook
+- World Bank API
+- Git
 
 ---
 
@@ -66,8 +79,6 @@ Country-Risk-Prediction/
 ├── docs/
 │
 ├── notebooks/
-│
-├── reports/
 │
 ├── src/
 │   ├── api/
@@ -88,111 +99,115 @@ Country-Risk-Prediction/
 
 ---
 
-# Technologies
-
-- Python
-- Pandas
-- NumPy
-- Scikit-Learn
-- Requests
-- Jupyter Notebook
-- World Bank API
-- Git
-
----
-
 # Machine Learning Pipeline
-
-Current pipeline:
 
 ```
 Download Data
-
-↓
-
+      │
+      ▼
 Validation
-
-↓
-
+      │
+      ▼
 Cleaning
-
-↓
-
+      │
+      ▼
 Feature Engineering
-
-↓
-
-EDA
-
-↓
-
-Train Model
-
-↓
-
-Model Evaluation
+      │
+      ▼
+Exploratory Data Analysis
+      │
+      ▼
+Train Random Forest
+      │
+      ▼
+Evaluate Model
 ```
-
-Current baseline model:
-
-- Random Forest Regressor
-
-Evaluation Metrics:
-
-- MAE
-- RMSE
-- R² Score
 
 ---
 
-# Current Features
+# Dataset
 
-Current dataset includes:
+Current indicators
 
 - GDP per Capita
 - Population
 - Inflation
 - Life Expectancy
+
+Engineered Features
+
 - GDP Growth
 - Population Growth
-- Lag Features
+- GDP Lag
+- Inflation Lag
+- Life Expectancy Lag
 
 ---
 
-# Future Improvements
+# Current Results
 
-Planned roadmap:
+Baseline Model
+
+| Metric | Value |
+|--------|------:|
+| MAE | 8.6462 |
+| RMSE | 14.8474 |
+| R² | 0.1907 |
+
+---
+
+# Future Roadmap
+
+## Version 1.1
 
 - Worldwide Governance Indicators (WGI)
 - Country Risk Score
+
+## Version 1.2
+
 - XGBoost
 - LightGBM
 - CatBoost
-- Hyperparameter Tuning
+- Model Benchmark
+
+## Version 1.3
+
 - SHAP Explainability
+- Feature Importance
+
+## Version 1.4
+
 - Streamlit Dashboard
+
+## Version 2.0
+
 - Docker
-- CI/CD with GitHub Actions
-- Unit Testing
-- MLflow Experiment Tracking
+- MLflow
+- GitHub Actions
+- Unit Tests
+- CI/CD Pipeline
 
 ---
 
 # Installation
 
-Clone the repository
+Clone repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Country-Risk-Prediction.git
+git clone https://github.com/AnderCruz/Country-Risk-Prediction.git
 ```
 
-Create a virtual environment
+Enter the project
+
+```bash
+cd Country-Risk-Prediction
+```
+
+Create virtual environment
 
 ```bash
 python -m venv .venv
 ```
-
-Activate it
 
 Linux
 
@@ -220,15 +235,11 @@ python src/main.py
 
 ---
 
-# Project Status
+# Current Status
 
-Current Version
+**Version:** v1.0.0
 
-**v1.0.0**
-
-Status
-
-✅ Active Development
+**Status:** Active Development
 
 ---
 
@@ -238,10 +249,10 @@ Status
 
 Data Scientist | Machine Learning | Predictive Analytics
 
-LinkedIn:
+LinkedIn
 
 https://linkedin.com/in/anderjcruz
 
-GitHub:
+GitHub
 
-https://github.com/anderjcruz
+https://github.com/AnderCruz
