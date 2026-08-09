@@ -1,0 +1,40 @@
+services:
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.15.1
+    container_name: country-risk-mlflow
+
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root file:///mlflow/mlruns
+      --host 0.0.0.0
+      --port 5000
+      --allowed-hosts mlflow:5000,localhost:5000,127.0.0.1:5000
+
+    ports:
+      - "5000:5000"
+
+    volumes:
+      - ./mlflow.db:/mlflow/mlflow.db
+      - ./mlruns:/mlflow/mlruns
+
+    restart: unless-stopped
+
+  country-risk:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: country-risk-pipeline
+
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+
+    depends_on:
+      - mlflow
+
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./reports:/app/reports
