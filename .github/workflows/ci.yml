@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+
+  quality:
+    name: Code quality and validation
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify Python imports
+        run: |
+          python -c "import pandas"
+          python -c "import numpy"
+          python -c "import sklearn"
+          python -c "import requests"
+          python -c "import matplotlib"
+          python -c "import plotly"
+          python -c "import joblib"
+          python -c "import openpyxl"
+          python -c "import mlflow"
+          python -c "import dvc_s3"
+
+      - name: Validate DVC pipeline
+        run: |
+          dvc dag
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: country-risk-prediction:ci
