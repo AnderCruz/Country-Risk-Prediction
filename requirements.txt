@@ -6,6 +6,5 @@ matplotlib
 plotly
 joblib
 openpyxl
-xgboost
-shap
-streamlit
+mlflow
+dvc[s3]
