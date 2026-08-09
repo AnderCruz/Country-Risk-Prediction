@@ -24,6 +24,9 @@ from models.evaluate import evaluate_model
 from models.importance import feature_importance_report
 from models.experiments import run_experiments
 
+import mlflow
+from ml.tracking import setup_mlflow
+
 
 # =============================================================================
 # MAIN PIPELINE
@@ -34,6 +37,8 @@ def main():
     print("=" * 70)
     print("Country Risk Prediction Platform")
     print("=" * 70)
+
+    setup_mlflow()
 
     # -------------------------------------------------------------------------
     # STEP 1 - Load datasets
@@ -198,21 +203,38 @@ def main():
         "\n[6/7] Training Machine Learning model..."
     )
 
-    model, X_test, y_test, predictions = train_model(
-        merged,
-        FEATURE_COLUMNS,
-        TARGET_COLUMN,
-    )
+    with mlflow.start_run():
 
-    metrics = evaluate_model(
-        y_test,
-        predictions,
-    )
+        mlflow.log_param(
+            "model_type",
+            "RandomForestRegressor",
+        )
 
-    feature_importance_report(
-        model,
-        X_test.columns,
-    )
+        mlflow.log_param(
+            "n_features",
+            len(FEATURE_COLUMNS),
+        )
+
+        mlflow.log_param(
+            "target",
+            TARGET_COLUMN,
+        )
+
+        model, X_test, y_test, predictions = train_model(
+            merged,
+            FEATURE_COLUMNS,
+            TARGET_COLUMN,
+        )
+
+        metrics = evaluate_model(
+            y_test,
+            predictions,
+        )
+
+        feature_importance_report(
+            model,
+            X_test.columns,
+        )
 
     # -------------------------------------------------------------------------
     # STEP 7 - Experiments

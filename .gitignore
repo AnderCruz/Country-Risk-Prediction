@@ -6,6 +6,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.pyc
 
 .venv/
 venv/
@@ -44,3 +45,7 @@ data/governance/
 
 .DS_Store
 Thumbs.db
+
+# MLflow
+mlflow.db
+mlruns/
