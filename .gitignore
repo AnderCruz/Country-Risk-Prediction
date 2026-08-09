@@ -25,6 +25,12 @@ data/processed/
 reports/
 models/
 
+# External datasets
+data/external/
+data/governance/
+data/external/
+data/governance/
+
 # =============================================================================
 # IDE
 # =============================================================================

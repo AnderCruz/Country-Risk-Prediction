@@ -20,16 +20,27 @@ def create_features(df: pd.DataFrame) -> pd.DataFrame:
     # Growth
     # ------------------------------------------------------------------
 
-    df["gdp_growth"] = (
+    df["gdp_per_capita_growth"] = (
         df.groupby("countryiso3code")["gdp_per_capita"]
         .pct_change() * 100
     )
 
+    # Population growth
     df["population_growth"] = (
         df.groupby("countryiso3code")["population"]
         .pct_change() * 100
     )
+    
+        # ------------------------------------------------------------------
+    # Target (Next Year)
+    # ------------------------------------------------------------------
 
+    df["gdp_growth_next_year"] = (
+        df.groupby("countryiso3code")["gdp_growth"]
+        .shift(-1)
+    )
+    
+       
     # ------------------------------------------------------------------
     # Lag Features
     # ------------------------------------------------------------------

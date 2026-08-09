@@ -1,20 +1,26 @@
 import pandas as pd
+from pathlib import Path
 from api.client import WorldBankClient
-from config import RAW_DATA_DIR
+from data.sources.wgi import WGISource
+
+from config import (
+    WORLD_BANK_DIR,
+)
+
 from indicators import (
     ECONOMIC_INDICATORS,
-    GOVERNANCE_INDICATORS,
 )
-from pathlib import Path
 
 client = WorldBankClient()
-
 
 # =============================================================================
 # DATAFRAME
 # =============================================================================
 
-def create_dataframe(data: list, column_name: str) -> pd.DataFrame:
+def create_dataframe(
+    data: list,
+    column_name: str,
+) -> pd.DataFrame:
     """
     Convert World Bank JSON into DataFrame.
     """
@@ -52,12 +58,12 @@ def save_dataframe(
     filename: str,
 ) -> None:
 
-    RAW_DATA_DIR.mkdir(
+    WORLD_BANK_DIR.mkdir(
         parents=True,
         exist_ok=True,
     )
 
-    filepath = RAW_DATA_DIR / filename
+    filepath = WORLD_BANK_DIR / filename
 
     df.to_csv(
         filepath,
@@ -71,23 +77,21 @@ def save_dataframe(
 # DOWNLOAD
 # =============================================================================
 
-def download_indicators(indicators: dict) -> None:
+def download_indicators(
+    indicators: dict,
+) -> None:
     """
-    Download all indicators.
-
-    - Skip files that already exist.
-    - Continue if one indicator fails.
+    Download World Bank indicators.
     """
 
-    RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    WORLD_BANK_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     for name, indicator in indicators.items():
 
-        filepath = RAW_DATA_DIR / f"{name}.csv"
-
-        # ---------------------------------------------------
-        # Cache
-        # ---------------------------------------------------
+        filepath = WORLD_BANK_DIR / f"{name}.csv"
 
         if filepath.exists():
 
@@ -116,37 +120,48 @@ def download_indicators(indicators: dict) -> None:
         except Exception as e:
 
             print(f"✗ Failed downloading {name}")
-
             print(e)
 
             continue
 
 
-def download_all_datasets() -> None:
-    """
-    Download every dataset used by the project.
-    """
-
-    print("\nDownloading Economic Indicators")
-    download_indicators(ECONOMIC_INDICATORS)
-    
-    # print("\nDownloading Governance Indicators")
-
-    # download_indicators(GOVERNANCE_INDICATORS)
-
-
 # =============================================================================
-# LOAD
+# DOWNLOAD ALL
 # =============================================================================
 
-def load_all_datasets() -> dict:
+def load_all_datasets():
+    """
+    Load datasets from all data sources.
+    """
 
     datasets = {}
 
+    # ---------------------------------------------------------------
+    # WORLD BANK
+    # ---------------------------------------------------------------
+
     for file in sorted(
-        RAW_DATA_DIR.glob("*.csv")
+        WORLD_BANK_DIR.glob("*.csv")
     ):
 
-        datasets[file.stem] = pd.read_csv(file)
+        datasets[file.stem] = pd.read_csv(
+            file
+        )
+
+    # ---------------------------------------------------------------
+    # GOVERNANCE / WGI
+    # ---------------------------------------------------------------
+
+    governance_dir = (
+        WORLD_BANK_DIR.parent / "governance"
+    )
+
+    for file in sorted(
+        governance_dir.glob("*.csv")
+    ):
+
+        datasets[file.stem] = pd.read_csv(
+            file
+        )
 
     return datasets

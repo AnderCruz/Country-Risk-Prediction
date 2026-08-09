@@ -55,8 +55,20 @@ class WorldBankClient:
 
             data = response.json()
 
-            metadata = data[0]
+            # -------------------------------------------------------------
+            # Validate response
+            # -------------------------------------------------------------
 
+            if len(data) < 2:
+
+                print(f"\nInvalid response for indicator: {indicator}")
+                print(data)
+
+                raise Exception(
+                    f"World Bank API returned no data for {indicator}"
+                )
+
+            metadata = data[0]
             records = data[1]
 
             print(
