@@ -1,0 +1,34 @@
+schema: '2.0'
+stages:
+  prepare-data:
+    cmd: PYTHONPATH=src python3 -m pipelines.prepare_data
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: e61948a612042251be3ee53d59409f90.dir
+      size: 5339566
+      nfiles: 9
+    - path: src/data
+      hash: md5
+      md5: a5ec66f2b2902d970ad61155c44ad161.dir
+      size: 27025
+      nfiles: 16
+    - path: src/features
+      hash: md5
+      md5: dc4eaba40326b6d46978b192cc0c4646.dir
+      size: 20806
+      nfiles: 15
+    - path: src/pipelines/prepare_data.py
+      hash: md5
+      md5: a13edf258bfe2d8756a937afad31f640
+      size: 3935
+    - path: src/risk
+      hash: md5
+      md5: 84623e49293f05c6becef3a7a963695e.dir
+      size: 23203
+      nfiles: 11
+    outs:
+    - path: data/processed/country_risk_dataset.csv
+      hash: md5
+      md5: a65eb8e6d58489f52c14be34f8fdacc5
+      size: 5277188

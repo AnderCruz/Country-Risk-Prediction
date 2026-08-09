@@ -1,0 +1,15 @@
+stages:
+
+  prepare-data:
+
+    cmd: PYTHONPATH=src python3 -m pipelines.prepare_data
+
+    deps:
+      - data/raw
+      - src/pipelines/prepare_data.py
+      - src/data
+      - src/features
+      - src/risk
+
+    outs:
+      - data/processed/country_risk_dataset.csv
