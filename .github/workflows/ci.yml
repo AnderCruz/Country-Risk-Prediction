@@ -48,6 +48,10 @@ jobs:
         run: |
           dvc dag
 
+      - name: Run tests
+        run: |
+          pytest -v
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
