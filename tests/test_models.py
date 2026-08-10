@@ -2,31 +2,71 @@ import pandas as pd
 import pytest
 import mlflow
 
+from sklearn.ensemble import RandomForestRegressor
+
 from models.baseline import evaluate_naive_risk_baseline
 from models.train import train_model
-from sklearn.ensemble import RandomForestRegressor
 from models.evaluate import evaluate_model
 from models.experiments import run_experiments
 from models.importance import feature_importance_report
 
+
+# =============================================================================
+# BASELINE TESTS
+# =============================================================================
+
+
 def test_naive_risk_baseline_returns_metrics():
+
     df = pd.DataFrame(
         {
             "country": [
-                "Brazil", "Brazil", "Brazil", "Brazil", "Brazil",
-                "Argentina", "Argentina", "Argentina", "Argentina", "Argentina",
+                "Brazil",
+                "Brazil",
+                "Brazil",
+                "Brazil",
+                "Brazil",
+                "Argentina",
+                "Argentina",
+                "Argentina",
+                "Argentina",
+                "Argentina",
             ],
             "date": [
-                2018, 2019, 2020, 2021, 2022,
-                2018, 2019, 2020, 2021, 2022,
+                2018,
+                2019,
+                2020,
+                2021,
+                2022,
+                2018,
+                2019,
+                2020,
+                2021,
+                2022,
             ],
             "country_risk_index": [
-                10.0, 20.0, 30.0, 40.0, 50.0,
-                15.0, 25.0, 35.0, 45.0, 55.0,
+                10.0,
+                20.0,
+                30.0,
+                40.0,
+                50.0,
+                15.0,
+                25.0,
+                35.0,
+                45.0,
+                55.0,
             ],
             "future_country_risk": [
-                20.0, 30.0, 40.0, 50.0, 60.0,
-                25.0, 35.0, 45.0, 55.0, 65.0,
+                20.0,
+                30.0,
+                40.0,
+                50.0,
+                60.0,
+                25.0,
+                35.0,
+                45.0,
+                55.0,
+                65.0,
             ],
         }
     )
@@ -44,17 +84,36 @@ def test_naive_risk_baseline_returns_metrics():
 
 
 def test_naive_risk_baseline_uses_previous_year_risk():
+
     df = pd.DataFrame(
         {
             "country": [
-                "Brazil", "Brazil", "Brazil", "Brazil", "Brazil",
+                "Brazil",
+                "Brazil",
+                "Brazil",
+                "Brazil",
+                "Brazil",
             ],
-            "date": [2018, 2019, 2020, 2021, 2022],
+            "date": [
+                2018,
+                2019,
+                2020,
+                2021,
+                2022,
+            ],
             "country_risk_index": [
-                10.0, 20.0, 30.0, 40.0, 50.0,
+                10.0,
+                20.0,
+                30.0,
+                40.0,
+                50.0,
             ],
             "future_country_risk": [
-                20.0, 30.0, 40.0, 50.0, 60.0,
+                20.0,
+                30.0,
+                40.0,
+                50.0,
+                60.0,
             ],
         }
     )
@@ -66,23 +125,56 @@ def test_naive_risk_baseline_uses_previous_year_risk():
 
 
 def test_naive_risk_baseline_is_calculated_per_country():
+
     df = pd.DataFrame(
         {
             "country": [
-                "Brazil", "Brazil", "Brazil", "Brazil", "Brazil",
-                "Argentina", "Argentina", "Argentina", "Argentina", "Argentina",
+                "Brazil",
+                "Brazil",
+                "Brazil",
+                "Brazil",
+                "Brazil",
+                "Argentina",
+                "Argentina",
+                "Argentina",
+                "Argentina",
+                "Argentina",
             ],
             "date": [
-                2018, 2019, 2020, 2021, 2022,
-                2018, 2019, 2020, 2021, 2022,
+                2018,
+                2019,
+                2020,
+                2021,
+                2022,
+                2018,
+                2019,
+                2020,
+                2021,
+                2022,
             ],
             "country_risk_index": [
-                10.0, 20.0, 30.0, 40.0, 50.0,
-                100.0, 110.0, 120.0, 130.0, 140.0,
+                10.0,
+                20.0,
+                30.0,
+                40.0,
+                50.0,
+                100.0,
+                110.0,
+                120.0,
+                130.0,
+                140.0,
             ],
             "future_country_risk": [
-                20.0, 30.0, 40.0, 50.0, 60.0,
-                110.0, 120.0, 130.0, 140.0, 150.0,
+                20.0,
+                30.0,
+                40.0,
+                50.0,
+                60.0,
+                110.0,
+                120.0,
+                130.0,
+                140.0,
+                150.0,
             ],
         }
     )
@@ -93,13 +185,47 @@ def test_naive_risk_baseline_is_calculated_per_country():
     assert result["rmse"] == pytest.approx(20.0)
 
 
+# =============================================================================
+# MODEL TRAINING TESTS
+# =============================================================================
+
+
 def test_train_model_returns_expected_outputs(tmp_path, monkeypatch):
+
     df = pd.DataFrame(
         {
-            "date": [2018, 2019, 2020, 2021, 2022, 2023],
-            "feature_1": [1, 2, 3, 4, 5, 6],
-            "feature_2": [10, 20, 30, 40, 50, 60],
-            "target": [2, 4, 6, 8, 10, 12],
+            "date": [
+                2018,
+                2019,
+                2020,
+                2021,
+                2022,
+                2023,
+            ],
+            "feature_1": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+            ],
+            "feature_2": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+            ],
+            "target": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12,
+            ],
         }
     )
 
@@ -117,18 +243,51 @@ def test_train_model_returns_expected_outputs(tmp_path, monkeypatch):
         "target",
     )
 
-    assert isinstance(model, RandomForestRegressor)
+    assert isinstance(
+        model,
+        RandomForestRegressor,
+    )
+
     assert len(X_test) == len(y_test)
     assert len(y_test) == len(predictions)
 
 
 def test_train_model_saves_model(tmp_path, monkeypatch):
+
     df = pd.DataFrame(
         {
-            "date": [2018, 2019, 2020, 2021, 2022, 2023],
-            "feature_1": [1, 2, 3, 4, 5, 6],
-            "feature_2": [10, 20, 30, 40, 50, 60],
-            "target": [2, 4, 6, 8, 10, 12],
+            "date": [
+                2018,
+                2019,
+                2020,
+                2021,
+                2022,
+                2023,
+            ],
+            "feature_1": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+            ],
+            "feature_2": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+            ],
+            "target": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12,
+            ],
         }
     )
 
@@ -151,36 +310,11 @@ def test_train_model_saves_model(tmp_path, monkeypatch):
     assert model_path.exists()
 
 
-def test_train_model_saves_model(tmp_path, monkeypatch):
-    df = pd.DataFrame(
-        {
-            "date": [2018, 2019, 2020, 2021, 2022, 2023],
-            "feature_1": [1, 2, 3, 4, 5, 6],
-            "feature_2": [10, 20, 30, 40, 50, 60],
-            "target": [2, 4, 6, 8, 10, 12],
-        }
-    )
+def test_train_model_requires_at_least_two_years(
+    tmp_path,
+    monkeypatch,
+):
 
-    import models.train as train_module
-
-    monkeypatch.setattr(
-        train_module,
-        "MODEL_DIR",
-        tmp_path,
-    )
-
-    train_model(
-        df,
-        ["feature_1", "feature_2"],
-        "target",
-    )
-
-    model_path = tmp_path / "random_forest.pkl"
-
-    assert model_path.exists()
-
-
-def test_train_model_requires_at_least_two_years(tmp_path, monkeypatch):
     df = pd.DataFrame(
         {
             "date": [2020],
@@ -209,23 +343,56 @@ def test_train_model_requires_at_least_two_years(tmp_path, monkeypatch):
         )
 
 
+# =============================================================================
+# EVALUATION TESTS
+# =============================================================================
+
+
 def test_evaluate_model_calculates_metrics():
-    y_true = [10.0, 20.0, 30.0]
-    y_pred = [12.0, 18.0, 33.0]
+
+    y_true = [
+        10.0,
+        20.0,
+        30.0,
+    ]
+
+    y_pred = [
+        12.0,
+        18.0,
+        33.0,
+    ]
 
     result = evaluate_model(
         y_true,
         y_pred,
     )
 
-    assert result["mae"] == pytest.approx(2.3333333333)
-    assert result["rmse"] == pytest.approx(2.3804761428)
-    assert result["r2"] == pytest.approx(0.915)
+    assert result["mae"] == pytest.approx(
+        2.3333333333
+    )
+
+    assert result["rmse"] == pytest.approx(
+        2.3804761428
+    )
+
+    assert result["r2"] == pytest.approx(
+        0.915
+    )
 
 
 def test_evaluate_model_returns_expected_metrics():
-    y_true = [10.0, 20.0, 30.0]
-    y_pred = [10.0, 20.0, 30.0]
+
+    y_true = [
+        10.0,
+        20.0,
+        30.0,
+    ]
+
+    y_pred = [
+        10.0,
+        20.0,
+        30.0,
+    ]
 
     result = evaluate_model(
         y_true,
@@ -244,7 +411,9 @@ def test_evaluate_model_returns_expected_metrics():
 
 
 def test_evaluate_model_logs_metrics_to_mlflow():
+
     with mlflow.start_run():
+
         result = evaluate_model(
             [10.0, 20.0, 30.0],
             [12.0, 18.0, 33.0],
@@ -269,7 +438,16 @@ def test_evaluate_model_logs_metrics_to_mlflow():
     )
 
 
-def test_run_experiments_runs_all_experiments(monkeypatch, tmp_path):
+# =============================================================================
+# EXPERIMENT TESTS
+# =============================================================================
+
+
+def test_run_experiments_runs_all_experiments(
+    monkeypatch,
+    tmp_path,
+):
+
     import models.experiments as experiments_module
 
     monkeypatch.setattr(
@@ -282,10 +460,16 @@ def test_run_experiments_runs_all_experiments(monkeypatch, tmp_path):
     evaluate_calls = []
 
     class DummyRun:
+
         def __enter__(self):
             return self
 
-        def __exit__(self, exc_type, exc_value, traceback):
+        def __exit__(
+            self,
+            exc_type,
+            exc_value,
+            traceback,
+        ):
             return False
 
     monkeypatch.setattr(
@@ -300,7 +484,12 @@ def test_run_experiments_runs_all_experiments(monkeypatch, tmp_path):
         lambda *args, **kwargs: None,
     )
 
-    def fake_train_model(df, features, target_column):
+    def fake_train_model(
+        df,
+        features,
+        target_column,
+    ):
+
         train_calls.append(
             {
                 "features": features,
@@ -315,7 +504,11 @@ def test_run_experiments_runs_all_experiments(monkeypatch, tmp_path):
             pd.Series([1.0]),
         )
 
-    def fake_evaluate_model(y_test, predictions):
+    def fake_evaluate_model(
+        y_test,
+        predictions,
+    ):
+
         evaluate_calls.append(True)
 
         return {
@@ -336,7 +529,19 @@ def test_run_experiments_runs_all_experiments(monkeypatch, tmp_path):
         fake_evaluate_model,
     )
 
-    df = pd.DataFrame({"date": [2020]})
+    # feature_importance_report is tested separately.
+    # Mock it here because this test focuses on experiment orchestration.
+    monkeypatch.setattr(
+        experiments_module,
+        "feature_importance_report",
+        lambda *args, **kwargs: None,
+    )
+
+    df = pd.DataFrame(
+        {
+            "date": [2020],
+        }
+    )
 
     result = run_experiments(
         df,
@@ -352,6 +557,7 @@ def test_run_experiments_returns_expected_experiment_names(
     monkeypatch,
     tmp_path,
 ):
+
     import models.experiments as experiments_module
 
     monkeypatch.setattr(
@@ -361,10 +567,16 @@ def test_run_experiments_returns_expected_experiment_names(
     )
 
     class DummyRun:
+
         def __enter__(self):
             return self
 
-        def __exit__(self, exc_type, exc_value, traceback):
+        def __exit__(
+            self,
+            exc_type,
+            exc_value,
+            traceback,
+        ):
             return False
 
     monkeypatch.setattr(
@@ -400,8 +612,18 @@ def test_run_experiments_returns_expected_experiment_names(
         },
     )
 
+    monkeypatch.setattr(
+        experiments_module,
+        "feature_importance_report",
+        lambda *args, **kwargs: None,
+    )
+
     result = run_experiments(
-        pd.DataFrame({"date": [2020]}),
+        pd.DataFrame(
+            {
+                "date": [2020],
+            }
+        ),
         "future_country_risk",
     )
 
@@ -420,6 +642,7 @@ def test_run_experiments_rounds_metrics(
     monkeypatch,
     tmp_path,
 ):
+
     import models.experiments as experiments_module
 
     monkeypatch.setattr(
@@ -429,10 +652,16 @@ def test_run_experiments_rounds_metrics(
     )
 
     class DummyRun:
+
         def __enter__(self):
             return self
 
-        def __exit__(self, exc_type, exc_value, traceback):
+        def __exit__(
+            self,
+            exc_type,
+            exc_value,
+            traceback,
+        ):
             return False
 
     monkeypatch.setattr(
@@ -468,8 +697,18 @@ def test_run_experiments_rounds_metrics(
         },
     )
 
+    monkeypatch.setattr(
+        experiments_module,
+        "feature_importance_report",
+        lambda *args, **kwargs: None,
+    )
+
     result = run_experiments(
-        pd.DataFrame({"date": [2020]}),
+        pd.DataFrame(
+            {
+                "date": [2020],
+            }
+        ),
         "future_country_risk",
     )
 
@@ -482,6 +721,7 @@ def test_run_experiments_saves_results_csv(
     monkeypatch,
     tmp_path,
 ):
+
     import models.experiments as experiments_module
 
     monkeypatch.setattr(
@@ -491,10 +731,16 @@ def test_run_experiments_saves_results_csv(
     )
 
     class DummyRun:
+
         def __enter__(self):
             return self
 
-        def __exit__(self, exc_type, exc_value, traceback):
+        def __exit__(
+            self,
+            exc_type,
+            exc_value,
+            traceback,
+        ):
             return False
 
     monkeypatch.setattr(
@@ -530,8 +776,18 @@ def test_run_experiments_saves_results_csv(
         },
     )
 
+    monkeypatch.setattr(
+        experiments_module,
+        "feature_importance_report",
+        lambda *args, **kwargs: None,
+    )
+
     run_experiments(
-        pd.DataFrame({"date": [2020]}),
+        pd.DataFrame(
+            {
+                "date": [2020],
+            }
+        ),
         "future_country_risk",
     )
 
@@ -542,6 +798,7 @@ def test_run_experiments_saves_results_csv(
     saved = pd.read_csv(output)
 
     assert len(saved) == 5
+
     assert list(saved.columns) == [
         "experiment",
         "n_features",
@@ -551,10 +808,16 @@ def test_run_experiments_saves_results_csv(
     ]
 
 
+# =============================================================================
+# FEATURE IMPORTANCE TESTS
+# =============================================================================
+
+
 def test_feature_importance_report_sorts_by_importance(
     tmp_path,
     monkeypatch,
 ):
+
     import models.importance as importance_module
 
     monkeypatch.setattr(
@@ -564,7 +827,12 @@ def test_feature_importance_report_sorts_by_importance(
     )
 
     class DummyModel:
-        feature_importances_ = [0.2, 0.7, 0.1]
+
+        feature_importances_ = [
+            0.2,
+            0.7,
+            0.1,
+        ]
 
     feature_names = [
         "feature_a",
@@ -588,7 +856,11 @@ def test_feature_importance_report_sorts_by_importance(
     ]
 
     assert result["importance"].tolist() == pytest.approx(
-        [0.7, 0.2, 0.1]
+        [
+            0.7,
+            0.2,
+            0.1,
+        ]
     )
 
 
@@ -596,6 +868,7 @@ def test_feature_importance_report_contains_all_features(
     tmp_path,
     monkeypatch,
 ):
+
     import models.importance as importance_module
 
     monkeypatch.setattr(
@@ -605,7 +878,13 @@ def test_feature_importance_report_contains_all_features(
     )
 
     class DummyModel:
-        feature_importances_ = [0.4, 0.3, 0.2, 0.1]
+
+        feature_importances_ = [
+            0.4,
+            0.3,
+            0.2,
+            0.1,
+        ]
 
     feature_names = [
         "gdp",
@@ -624,13 +903,17 @@ def test_feature_importance_report_contains_all_features(
     )
 
     assert len(result) == 4
-    assert set(result["feature"]) == set(feature_names)
+
+    assert set(result["feature"]) == set(
+        feature_names
+    )
 
 
 def test_feature_importance_report_creates_csv(
     tmp_path,
     monkeypatch,
 ):
+
     import models.importance as importance_module
 
     monkeypatch.setattr(
@@ -640,11 +923,18 @@ def test_feature_importance_report_creates_csv(
     )
 
     class DummyModel:
-        feature_importances_ = [0.6, 0.4]
+
+        feature_importances_ = [
+            0.6,
+            0.4,
+        ]
 
     feature_importance_report(
         DummyModel(),
-        ["feature_a", "feature_b"],
+        [
+            "feature_a",
+            "feature_b",
+        ],
     )
 
     output = tmp_path / "feature_importance.csv"
@@ -657,5 +947,3 @@ def test_feature_importance_report_creates_csv(
         "feature",
         "importance",
     ]
-
-

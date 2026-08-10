@@ -5,6 +5,7 @@ import pandas as pd
 
 from models.train import train_model
 from models.evaluate import evaluate_model
+from models.importance import feature_importance_report
 
 
 # =============================================================================
@@ -185,6 +186,11 @@ def run_experiments(
             metrics = evaluate_model(
                 y_test,
                 predictions,
+            )
+
+            feature_importance_report(
+                model,
+                X_test.columns,
             )
 
             # -----------------------------------------------------------------
