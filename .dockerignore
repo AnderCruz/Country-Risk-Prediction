@@ -6,7 +6,9 @@
 __pycache__/
 *.pyc
 
-data/
+data/*
+!data/raw.dvc
+
 models/
 reports/
 
