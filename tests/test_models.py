@@ -6,6 +6,8 @@ from models.baseline import evaluate_naive_risk_baseline
 from models.train import train_model
 from sklearn.ensemble import RandomForestRegressor
 from models.evaluate import evaluate_model
+from models.experiments import run_experiments
+from models.importance import feature_importance_report
 
 def test_naive_risk_baseline_returns_metrics():
     df = pd.DataFrame(
@@ -265,5 +267,395 @@ def test_evaluate_model_logs_metrics_to_mlflow():
     assert metrics["r2"] == pytest.approx(
         result["r2"]
     )
+
+
+def test_run_experiments_runs_all_experiments(monkeypatch, tmp_path):
+    import models.experiments as experiments_module
+
+    monkeypatch.setattr(
+        experiments_module,
+        "REPORT_DIR",
+        tmp_path,
+    )
+
+    train_calls = []
+    evaluate_calls = []
+
+    class DummyRun:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+    monkeypatch.setattr(
+        experiments_module.mlflow,
+        "start_run",
+        lambda run_name: DummyRun(),
+    )
+
+    monkeypatch.setattr(
+        experiments_module.mlflow,
+        "log_param",
+        lambda *args, **kwargs: None,
+    )
+
+    def fake_train_model(df, features, target_column):
+        train_calls.append(
+            {
+                "features": features,
+                "target": target_column,
+            }
+        )
+
+        return (
+            object(),
+            pd.DataFrame(),
+            pd.Series([1.0]),
+            pd.Series([1.0]),
+        )
+
+    def fake_evaluate_model(y_test, predictions):
+        evaluate_calls.append(True)
+
+        return {
+            "mae": 1.0,
+            "rmse": 2.0,
+            "r2": 0.5,
+        }
+
+    monkeypatch.setattr(
+        experiments_module,
+        "train_model",
+        fake_train_model,
+    )
+
+    monkeypatch.setattr(
+        experiments_module,
+        "evaluate_model",
+        fake_evaluate_model,
+    )
+
+    df = pd.DataFrame({"date": [2020]})
+
+    result = run_experiments(
+        df,
+        "future_country_risk",
+    )
+
+    assert len(train_calls) == 5
+    assert len(evaluate_calls) == 5
+    assert len(result) == 5
+
+
+def test_run_experiments_returns_expected_experiment_names(
+    monkeypatch,
+    tmp_path,
+):
+    import models.experiments as experiments_module
+
+    monkeypatch.setattr(
+        experiments_module,
+        "REPORT_DIR",
+        tmp_path,
+    )
+
+    class DummyRun:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+    monkeypatch.setattr(
+        experiments_module.mlflow,
+        "start_run",
+        lambda run_name: DummyRun(),
+    )
+
+    monkeypatch.setattr(
+        experiments_module.mlflow,
+        "log_param",
+        lambda *args, **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        experiments_module,
+        "train_model",
+        lambda df, features, target_column: (
+            object(),
+            pd.DataFrame(),
+            pd.Series([1.0]),
+            pd.Series([1.0]),
+        ),
+    )
+
+    monkeypatch.setattr(
+        experiments_module,
+        "evaluate_model",
+        lambda y_test, predictions: {
+            "mae": 1.0,
+            "rmse": 2.0,
+            "r2": 0.5,
+        },
+    )
+
+    result = run_experiments(
+        pd.DataFrame({"date": [2020]}),
+        "future_country_risk",
+    )
+
+    expected = [
+        "Baseline",
+        "Baseline + Lag",
+        "Baseline + Lag + Economic Risk",
+        "Baseline + Lag + Economic Risk PCA",
+        "Full Risk Model",
+    ]
+
+    assert result["experiment"].tolist() == expected
+
+
+def test_run_experiments_rounds_metrics(
+    monkeypatch,
+    tmp_path,
+):
+    import models.experiments as experiments_module
+
+    monkeypatch.setattr(
+        experiments_module,
+        "REPORT_DIR",
+        tmp_path,
+    )
+
+    class DummyRun:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+    monkeypatch.setattr(
+        experiments_module.mlflow,
+        "start_run",
+        lambda run_name: DummyRun(),
+    )
+
+    monkeypatch.setattr(
+        experiments_module.mlflow,
+        "log_param",
+        lambda *args, **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        experiments_module,
+        "train_model",
+        lambda df, features, target_column: (
+            object(),
+            pd.DataFrame(),
+            pd.Series([1.0]),
+            pd.Series([1.0]),
+        ),
+    )
+
+    monkeypatch.setattr(
+        experiments_module,
+        "evaluate_model",
+        lambda y_test, predictions: {
+            "mae": 1.234567,
+            "rmse": 2.345678,
+            "r2": 0.987654,
+        },
+    )
+
+    result = run_experiments(
+        pd.DataFrame({"date": [2020]}),
+        "future_country_risk",
+    )
+
+    assert result["mae"].iloc[0] == 1.2346
+    assert result["rmse"].iloc[0] == 2.3457
+    assert result["r2"].iloc[0] == 0.9877
+
+
+def test_run_experiments_saves_results_csv(
+    monkeypatch,
+    tmp_path,
+):
+    import models.experiments as experiments_module
+
+    monkeypatch.setattr(
+        experiments_module,
+        "REPORT_DIR",
+        tmp_path,
+    )
+
+    class DummyRun:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+    monkeypatch.setattr(
+        experiments_module.mlflow,
+        "start_run",
+        lambda run_name: DummyRun(),
+    )
+
+    monkeypatch.setattr(
+        experiments_module.mlflow,
+        "log_param",
+        lambda *args, **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        experiments_module,
+        "train_model",
+        lambda df, features, target_column: (
+            object(),
+            pd.DataFrame(),
+            pd.Series([1.0]),
+            pd.Series([1.0]),
+        ),
+    )
+
+    monkeypatch.setattr(
+        experiments_module,
+        "evaluate_model",
+        lambda y_test, predictions: {
+            "mae": 1.0,
+            "rmse": 2.0,
+            "r2": 0.5,
+        },
+    )
+
+    run_experiments(
+        pd.DataFrame({"date": [2020]}),
+        "future_country_risk",
+    )
+
+    output = tmp_path / "experiments.csv"
+
+    assert output.exists()
+
+    saved = pd.read_csv(output)
+
+    assert len(saved) == 5
+    assert list(saved.columns) == [
+        "experiment",
+        "n_features",
+        "mae",
+        "rmse",
+        "r2",
+    ]
+
+
+def test_feature_importance_report_sorts_by_importance(
+    tmp_path,
+    monkeypatch,
+):
+    import models.importance as importance_module
+
+    monkeypatch.setattr(
+        importance_module,
+        "REPORTS_DIR",
+        tmp_path,
+    )
+
+    class DummyModel:
+        feature_importances_ = [0.2, 0.7, 0.1]
+
+    feature_names = [
+        "feature_a",
+        "feature_b",
+        "feature_c",
+    ]
+
+    feature_importance_report(
+        DummyModel(),
+        feature_names,
+    )
+
+    result = pd.read_csv(
+        tmp_path / "feature_importance.csv"
+    )
+
+    assert result["feature"].tolist() == [
+        "feature_b",
+        "feature_a",
+        "feature_c",
+    ]
+
+    assert result["importance"].tolist() == pytest.approx(
+        [0.7, 0.2, 0.1]
+    )
+
+
+def test_feature_importance_report_contains_all_features(
+    tmp_path,
+    monkeypatch,
+):
+    import models.importance as importance_module
+
+    monkeypatch.setattr(
+        importance_module,
+        "REPORTS_DIR",
+        tmp_path,
+    )
+
+    class DummyModel:
+        feature_importances_ = [0.4, 0.3, 0.2, 0.1]
+
+    feature_names = [
+        "gdp",
+        "inflation",
+        "exports",
+        "population",
+    ]
+
+    feature_importance_report(
+        DummyModel(),
+        feature_names,
+    )
+
+    result = pd.read_csv(
+        tmp_path / "feature_importance.csv"
+    )
+
+    assert len(result) == 4
+    assert set(result["feature"]) == set(feature_names)
+
+
+def test_feature_importance_report_creates_csv(
+    tmp_path,
+    monkeypatch,
+):
+    import models.importance as importance_module
+
+    monkeypatch.setattr(
+        importance_module,
+        "REPORTS_DIR",
+        tmp_path,
+    )
+
+    class DummyModel:
+        feature_importances_ = [0.6, 0.4]
+
+    feature_importance_report(
+        DummyModel(),
+        ["feature_a", "feature_b"],
+    )
+
+    output = tmp_path / "feature_importance.csv"
+
+    assert output.exists()
+
+    result = pd.read_csv(output)
+
+    assert list(result.columns) == [
+        "feature",
+        "importance",
+    ]
 
 
