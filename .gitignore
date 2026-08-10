@@ -24,7 +24,7 @@ venv/
 data/raw/
 data/processed/
 reports/
-models/
+/models/
 
 # External datasets
 data/external/
