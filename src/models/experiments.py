@@ -7,6 +7,10 @@ from models.train import train_model
 from models.evaluate import evaluate_model
 from models.importance import feature_importance_report
 from ml.validation import validate_model
+from ml.performance import (
+    analyse_model_performance,
+    build_performance_dataset,
+)
 
 
 # =============================================================================
@@ -298,6 +302,101 @@ def run_experiments(
                 model,
                 X_test.columns,
             )
+
+            #-----------------------------------------------------------------
+            # Performance Analysis
+            # -----------------------------------------------------------------
+
+            performance_available = (
+                {"country", "date"}.issubset(df.columns)
+                and len(X_test) == len(y_test)
+                and len(y_test) == len(predictions)
+                and len(X_test) > 0
+            )
+
+            if performance_available:
+
+                performance_data = build_performance_dataset(
+                    X_test,
+                    y_test,
+                    predictions,
+                    df,
+                )
+
+                performance = analyse_model_performance(
+                    performance_data,
+                    "actual",
+                    "prediction",
+                )
+
+                global_performance = performance["global"]
+                yearly_performance = performance["yearly"]
+                country_performance = performance["country"]
+
+                # -------------------------------------------------------------
+                # Save Performance Reports
+                # -------------------------------------------------------------
+
+                experiment_slug = (
+                    experiment["name"]
+                    .lower()
+                    .replace(" ", "_")
+                )
+
+                yearly_output = (
+                    REPORT_DIR /
+                    f"performance_by_year_{experiment_slug}.csv"
+                )
+
+                country_output = (
+                    REPORT_DIR /
+                    f"performance_by_country_{experiment_slug}.csv"
+                )
+
+                yearly_performance.to_csv(
+                    yearly_output,
+                    index=False,
+                )
+
+                country_performance.to_csv(
+                    country_output,
+                    index=False,
+                )
+
+                print(
+                    f"Saved: {yearly_output}"
+                )
+
+                print(
+                    f"Saved: {country_output}"
+                )
+
+                # -------------------------------------------------------------
+                # MLflow Performance Metrics
+                # -------------------------------------------------------------
+
+                mlflow.log_metric(
+                    "performance_mae",
+                    global_performance["mae"],
+                )
+
+                mlflow.log_metric(
+                    "performance_rmse",
+                    global_performance["rmse"],
+                )
+
+                mlflow.log_metric(
+                    "performance_r2",
+                    global_performance["r2"],
+                )
+
+            else:
+
+                print(
+                    "\nPerformance analysis skipped: "
+                    "test data is not suitable."
+                )
+
 
             # -----------------------------------------------------------------
             # Results
