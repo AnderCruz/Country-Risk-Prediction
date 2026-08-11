@@ -1,3 +1,4 @@
+---
 name: CD
 
 on:
@@ -6,36 +7,175 @@ on:
       - main
 
 permissions:
+  id-token: write
   contents: read
-  packages: write
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: country-risk-prediction
+  SAGEMAKER_ENDPOINT: country-risk-prediction-v7-v3
+  SAGEMAKER_EXECUTION_ROLE: arn:aws:iam::287127678337:role/CountryRiskSageMakerExecutionRole
 
 jobs:
-  build-and-push:
-    name: Build and push Docker image
+  deploy:
+    name: Build and deploy to SageMaker
     runs-on: ubuntu-latest
 
     steps:
+
+      # ------------------------------------------------------------
+      # Checkout
+      # ------------------------------------------------------------
+
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+      # ------------------------------------------------------------
+      # AWS authentication via GitHub OIDC
+      # ------------------------------------------------------------
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          role-to-assume: arn:aws:iam::287127678337:role/GitHubActionsCountryRiskDeployRole
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            ghcr.io/andercruz/country-risk-prediction:latest
-            ghcr.io/andercruz/country-risk-prediction:${{ github.sha }}
+      - name: Verify AWS identity
+        run: |
+          aws sts get-caller-identity
 
-            
+      # ------------------------------------------------------------
+      # Install DVC
+      # ------------------------------------------------------------
+
+      - name: Install DVC
+        run: |
+          python -m pip install --upgrade pip
+          pip install "dvc[s3]"
+
+      # ------------------------------------------------------------
+      # Pull model artifact from DVC/S3
+      # ------------------------------------------------------------
+
+      - name: Pull model artifact
+        run: |
+          dvc pull docker/model/model.skops
+
+      - name: Verify model artifact
+        run: |
+          ls -lh docker/model/model.skops
+          test -f docker/model/model.skops
+
+      # ------------------------------------------------------------
+      # Login to Amazon ECR
+      # ------------------------------------------------------------
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ------------------------------------------------------------
+      # Build SageMaker Docker image
+      # ------------------------------------------------------------
+
+      - name: Build SageMaker Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            -f Dockerfile.sagemaker \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            .
+
+      # ------------------------------------------------------------
+      # Push image to ECR
+      # ------------------------------------------------------------
+
+      - name: Push image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker push \
+            "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      # ------------------------------------------------------------
+      # Create SageMaker model
+      # ------------------------------------------------------------
+
+      - name: Create SageMaker model
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::12}"
+          MODEL_NAME="country-risk-prediction-${SHORT_SHA}"
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+          aws sagemaker create-model \
+            --model-name "$MODEL_NAME" \
+            --execution-role-arn "$SAGEMAKER_EXECUTION_ROLE" \
+            --primary-container Image="$IMAGE_URI" \
+            --region "$AWS_REGION"
+
+          echo "MODEL_NAME=$MODEL_NAME" >> "$GITHUB_ENV"
+
+      # ------------------------------------------------------------
+      # Create SageMaker endpoint configuration
+      # ------------------------------------------------------------
+
+      - name: Create SageMaker endpoint configuration
+        run: |
+          ENDPOINT_CONFIG_NAME="${MODEL_NAME}-config"
+          VARIANT_SPEC="VariantName=AllTraffic,ModelName=$MODEL_NAME,InitialInstanceCount=1,InstanceType=ml.t2.medium,InitialVariantWeight=1.0"
+
+          aws sagemaker create-endpoint-config \
+            --endpoint-config-name "$ENDPOINT_CONFIG_NAME" \
+            --production-variants "$VARIANT_SPEC" \
+            --region "$AWS_REGION"
+
+          echo "ENDPOINT_CONFIG_NAME=$ENDPOINT_CONFIG_NAME" >> "$GITHUB_ENV"
+
+      # ------------------------------------------------------------
+      # Update SageMaker endpoint
+      # ------------------------------------------------------------
+
+      - name: Update SageMaker endpoint
+        run: |
+          aws sagemaker update-endpoint \
+            --endpoint-name "$SAGEMAKER_ENDPOINT" \
+            --endpoint-config-name "$ENDPOINT_CONFIG_NAME" \
+            --region "$AWS_REGION"
+
+      # ------------------------------------------------------------
+      # Wait for endpoint deployment
+      # ------------------------------------------------------------
+
+      - name: Wait for SageMaker endpoint
+        run: |
+          aws sagemaker wait endpoint-in-service \
+            --endpoint-name "$SAGEMAKER_ENDPOINT" \
+            --region "$AWS_REGION"
+
+      # ------------------------------------------------------------
+      # Verify endpoint
+      # ------------------------------------------------------------
+
+      - name: Verify SageMaker endpoint
+        run: |
+          aws sagemaker describe-endpoint \
+            --endpoint-name "$SAGEMAKER_ENDPOINT" \
+            --region "$AWS_REGION" \
+            --query '{EndpointName:EndpointName,Status:EndpointStatus,Config:EndpointConfigName}'
+
+      # ------------------------------------------------------------
+      # Verify deployed model image
+      # ------------------------------------------------------------
+
+      - name: Verify deployed image
+        run: |
+          aws sagemaker describe-endpoint \
+            --endpoint-name "$SAGEMAKER_ENDPOINT" \
+            --region "$AWS_REGION" \
+            --query 'ProductionVariants[0].DeployedImages[0]'
