@@ -15,8 +15,14 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
+
 COPY dvc.yaml .
 COPY dvc.lock .
+COPY data/raw.dvc ./data/raw.dvc
 COPY .dvc/ ./.dvc/
 
-CMD ["python", "src/main.py"]
+COPY docker/entrypoint.sh ./entrypoint.sh
+
+RUN chmod +x ./entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
