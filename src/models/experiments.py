@@ -21,6 +21,13 @@ REPORT_DIR.mkdir(
 
 
 # =============================================================================
+# MLFLOW MODEL REGISTRY
+# =============================================================================
+
+REGISTERED_MODEL_NAME = "country-risk-prediction-model"
+
+
+# =============================================================================
 # EXPERIMENTS
 # =============================================================================
 
@@ -168,6 +175,26 @@ def run_experiments(
                 "features",
                 ", ".join(features),
             )
+
+            # -----------------------------------------------------------------
+            # Model Registry configuration
+            # -----------------------------------------------------------------
+
+            if experiment["name"] == "Full Risk Model":
+
+                mlflow.set_tag(
+                    "register_model",
+                    "true",
+                )
+
+                mlflow.set_tag(
+                    "registered_model_name",
+                    REGISTERED_MODEL_NAME,
+                )
+
+                print(
+                    "\nRegistering Full Risk Model..."
+                )
 
             # -----------------------------------------------------------------
             # Train
