@@ -7,7 +7,7 @@ import pandas as pd
 
 from sklearn.ensemble import RandomForestRegressor
 from mlflow.models import infer_signature
-
+from ml.registry import register_model
 
 # =============================================================================
 # PATHS
@@ -36,6 +36,8 @@ def train_model(
     The trained model is:
         1. Saved locally as a .pkl file
         2. Logged to MLflow as a model artifact
+        3. Optionally registered in the MLflow Model Registry
+           when the active MLflow run contains the appropriate tags.
     """
 
     print("\nTraining Random Forest")
@@ -209,7 +211,7 @@ def train_model(
 
         input_example = X_train.head(3)
 
-        mlflow.sklearn.log_model(
+        model_info = mlflow.sklearn.log_model(
             sk_model=model,
             name="random_forest",
             signature=signature,
@@ -219,6 +221,31 @@ def train_model(
         print(
             "Model logged to MLflow successfully."
         )
+
+        # =====================================================================
+        # MODEL REGISTRY
+        # =====================================================================
+
+        run = mlflow.get_run(
+            mlflow.active_run().info.run_id
+        )
+
+        if run.data.tags.get("register_model") == "true":
+
+            registered_model_name = run.data.tags.get(
+                "registered_model_name",
+                "country-risk-prediction-model",
+            )
+
+            print(
+                "\nRegistering model..."
+            )
+
+            register_model(
+                model_uri=model_info.model_uri,
+                model_name=registered_model_name,
+            )
+
 
     else:
 
