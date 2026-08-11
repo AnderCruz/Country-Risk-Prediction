@@ -9,6 +9,7 @@ from models.train import train_model
 from models.evaluate import evaluate_model
 from models.experiments import run_experiments
 from models.importance import feature_importance_report
+from ml.validation import validate_model
 
 
 # =============================================================================
@@ -183,6 +184,151 @@ def test_naive_risk_baseline_is_calculated_per_country():
 
     assert result["mae"] == pytest.approx(20.0)
     assert result["rmse"] == pytest.approx(20.0)
+
+
+# =============================================================================
+# MODEL VALIDATION TESTS
+# =============================================================================
+
+
+def test_validate_model_passes_when_model_outperforms_baseline():
+
+    model_metrics = {
+        "mae": 0.0544,
+        "rmse": 0.0963,
+        "r2": 0.9281,
+    }
+
+    baseline_metrics = {
+        "mae": 0.1432,
+        "rmse": 0.1961,
+        "r2": 0.6956,
+    }
+
+    result = validate_model(
+        model_metrics,
+        baseline_metrics,
+    )
+
+    assert result["passed"] is True
+
+    assert result["mae_passed"] is True
+    assert result["rmse_passed"] is True
+    assert result["r2_passed"] is True
+
+    assert result["mae_improvement"] == pytest.approx(
+        0.0888
+    )
+
+    assert result["rmse_improvement"] == pytest.approx(
+        0.0998
+    )
+
+    assert result["r2_improvement"] == pytest.approx(
+        0.2325
+    )
+
+
+def test_validate_model_fails_when_model_underperforms_baseline():
+
+    model_metrics = {
+        "mae": 0.20,
+        "rmse": 0.25,
+        "r2": 0.50,
+    }
+
+    baseline_metrics = {
+        "mae": 0.1432,
+        "rmse": 0.1961,
+        "r2": 0.6956,
+    }
+
+    result = validate_model(
+        model_metrics,
+        baseline_metrics,
+    )
+
+    assert result["passed"] is False
+
+    assert result["mae_passed"] is False
+    assert result["rmse_passed"] is False
+    assert result["r2_passed"] is False
+
+
+def test_validate_model_fails_when_any_metric_does_not_improve():
+
+    model_metrics = {
+        "mae": 0.10,
+        "rmse": 0.15,
+        "r2": 0.60,
+    }
+
+    baseline_metrics = {
+        "mae": 0.1432,
+        "rmse": 0.1961,
+        "r2": 0.6956,
+    }
+
+    result = validate_model(
+        model_metrics,
+        baseline_metrics,
+    )
+
+    assert result["passed"] is False
+
+    assert result["mae_passed"] is True
+    assert result["rmse_passed"] is True
+    assert result["r2_passed"] is False
+
+
+def test_validate_model_raises_when_model_metrics_are_missing():
+
+    model_metrics = {
+        "mae": 0.10,
+        "rmse": 0.15,
+    }
+
+    baseline_metrics = {
+        "mae": 0.1432,
+        "rmse": 0.1961,
+        "r2": 0.6956,
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="Missing model metrics",
+    ):
+
+        validate_model(
+            model_metrics,
+            baseline_metrics,
+        )
+
+
+def test_validate_model_raises_when_baseline_metrics_are_missing():
+
+    model_metrics = {
+        "mae": 0.10,
+        "rmse": 0.15,
+        "r2": 0.80,
+    }
+
+    baseline_metrics = {
+        "mae": 0.1432,
+        "rmse": 0.1961,
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="Missing baseline metrics",
+    ):
+
+        validate_model(
+            model_metrics,
+            baseline_metrics,
+        )
+
+
 
 
 # =============================================================================
