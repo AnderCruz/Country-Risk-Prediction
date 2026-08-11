@@ -242,7 +242,7 @@ def main():
 
     print("\nEvaluating naive Country Risk baseline...")
 
-    evaluate_naive_risk_baseline(
+    baseline_metrics = evaluate_naive_risk_baseline(
         merged
 )
     
@@ -253,6 +253,7 @@ def main():
     run_experiments(
         merged,
         TARGET_COLUMN,
+        baseline_metrics,
     )
 
     print(

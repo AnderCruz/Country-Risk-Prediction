@@ -6,6 +6,7 @@ import pandas as pd
 from models.train import train_model
 from models.evaluate import evaluate_model
 from models.importance import feature_importance_report
+from ml.validation import validate_model
 
 
 # =============================================================================
@@ -34,6 +35,7 @@ REGISTERED_MODEL_NAME = "country-risk-prediction-model"
 def run_experiments(
     df,
     target_column,
+    baseline_metrics=None,
 ):
 
     experiments = [
@@ -214,6 +216,83 @@ def run_experiments(
                 y_test,
                 predictions,
             )
+
+            # -----------------------------------------------------------------
+            # Model Validation
+            # -----------------------------------------------------------------
+
+            validation_result = None
+
+            if (
+                experiment["name"] == "Full Risk Model"
+                and baseline_metrics is not None
+            ):
+
+                validation_result = validate_model(
+                    metrics,
+                    baseline_metrics,
+                )
+
+                mlflow.log_metric(
+                    "baseline_mae",
+                    baseline_metrics["mae"],
+                )
+
+                mlflow.log_metric(
+                    "baseline_rmse",
+                    baseline_metrics["rmse"],
+                )
+
+                mlflow.log_metric(
+                    "baseline_r2",
+                    baseline_metrics["r2"],
+                )
+
+                mlflow.log_metric(
+                    "mae_improvement",
+                    validation_result["mae_improvement"],
+                )
+
+                mlflow.log_metric(
+                    "rmse_improvement",
+                    validation_result["rmse_improvement"],
+                )
+
+                mlflow.log_metric(
+                    "r2_improvement",
+                    validation_result["r2_improvement"],
+                )
+
+                mlflow.set_tag(
+                    "validation_status",
+                    "passed"
+                    if validation_result["passed"]
+                    else "failed",
+                )
+
+                print(
+                    "\nModel Validation"
+                )
+
+                print(
+                    f"Status: "
+                    f"{'PASSED' if validation_result['passed'] else 'FAILED'}"
+                )
+
+                print(
+                    f"MAE improvement : "
+                    f"{validation_result['mae_improvement']:.4f}"
+                )
+
+                print(
+                    f"RMSE improvement: "
+                    f"{validation_result['rmse_improvement']:.4f}"
+                )
+
+                print(
+                    f"R² improvement  : "
+                    f"{validation_result['r2_improvement']:.4f}"
+                )
 
             feature_importance_report(
                 model,
