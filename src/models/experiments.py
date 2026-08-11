@@ -6,7 +6,10 @@ import pandas as pd
 from models.train import train_model
 from models.evaluate import evaluate_model
 from models.importance import feature_importance_report
+
 from ml.validation import validate_model
+from ml.registry import register_model
+
 from ml.performance import (
     analyse_model_performance,
     build_performance_dataset,
@@ -183,23 +186,17 @@ def run_experiments(
             )
 
             # -----------------------------------------------------------------
-            # Model Registry configuration
+            # Full Risk Model identification
             # -----------------------------------------------------------------
 
-            if experiment["name"] == "Full Risk Model":
+            is_full_risk_model = (
+                experiment["name"] == "Full Risk Model"
+            )
 
-                mlflow.set_tag(
-                    "register_model",
-                    "true",
-                )
-
-                mlflow.set_tag(
-                    "registered_model_name",
-                    REGISTERED_MODEL_NAME,
-                )
+            if is_full_risk_model:
 
                 print(
-                    "\nRegistering Full Risk Model..."
+                    "\nEvaluating Full Risk Model..."
                 )
 
             # -----------------------------------------------------------------
@@ -228,7 +225,7 @@ def run_experiments(
             validation_result = None
 
             if (
-                experiment["name"] == "Full Risk Model"
+                is_full_risk_model
                 and baseline_metrics is not None
             ):
 
@@ -236,6 +233,10 @@ def run_experiments(
                     metrics,
                     baseline_metrics,
                 )
+
+                # -------------------------------------------------------------
+                # Baseline metrics
+                # -------------------------------------------------------------
 
                 mlflow.log_metric(
                     "baseline_mae",
@@ -252,6 +253,10 @@ def run_experiments(
                     baseline_metrics["r2"],
                 )
 
+                # -------------------------------------------------------------
+                # Improvements
+                # -------------------------------------------------------------
+
                 mlflow.log_metric(
                     "mae_improvement",
                     validation_result["mae_improvement"],
@@ -267,11 +272,19 @@ def run_experiments(
                     validation_result["r2_improvement"],
                 )
 
-                mlflow.set_tag(
-                    "validation_status",
+                # -------------------------------------------------------------
+                # Validation status
+                # -------------------------------------------------------------
+
+                validation_status = (
                     "passed"
                     if validation_result["passed"]
-                    else "failed",
+                    else "failed"
+                )
+
+                mlflow.set_tag(
+                    "validation_status",
+                    validation_status,
                 )
 
                 print(
@@ -298,12 +311,89 @@ def run_experiments(
                     f"{validation_result['r2_improvement']:.4f}"
                 )
 
+                # -------------------------------------------------------------
+                # Model Registry Gate
+                # -------------------------------------------------------------
+
+                if validation_result["passed"]:
+
+                    active_run = mlflow.active_run()
+
+                    if active_run is None:
+
+                        raise RuntimeError(
+                            "No active MLflow run available "
+                            "for model registration."
+                        )
+
+                    run_id = active_run.info.run_id
+
+                    model_uri = (
+                        f"runs:/{run_id}/random_forest"
+                    )
+
+                    print(
+                        "\nValidation passed."
+                    )
+
+                    print(
+                        "Registering validated model..."
+                    )
+
+                    registered_model = register_model(
+                        model_uri=model_uri,
+                        model_name=REGISTERED_MODEL_NAME,
+                    )
+
+                    print(
+                        f"Registered model version: "
+                        f"{registered_model.version}"
+                    )
+
+                else:
+
+                    print(
+                        "\nValidation failed."
+                    )
+
+                    print(
+                        "Model will NOT be registered."
+                    )
+
+            elif is_full_risk_model:
+
+                # -------------------------------------------------------------
+                # No baseline available
+                # -------------------------------------------------------------
+
+                mlflow.set_tag(
+                    "validation_status",
+                    "not_evaluated",
+                )
+
+                print(
+                    "\nModel Validation"
+                )
+
+                print(
+                    "Validation skipped: "
+                    "baseline metrics not provided."
+                )
+
+                print(
+                    "Model will NOT be registered."
+                )
+
+            # -----------------------------------------------------------------
+            # Feature Importance
+            # -----------------------------------------------------------------
+
             feature_importance_report(
                 model,
                 X_test.columns,
             )
 
-            #-----------------------------------------------------------------
+            # -----------------------------------------------------------------
             # Performance Analysis
             # -----------------------------------------------------------------
 
@@ -344,13 +434,13 @@ def run_experiments(
                 )
 
                 yearly_output = (
-                    REPORT_DIR /
-                    f"performance_by_year_{experiment_slug}.csv"
+                    REPORT_DIR
+                    / f"performance_by_year_{experiment_slug}.csv"
                 )
 
                 country_output = (
-                    REPORT_DIR /
-                    f"performance_by_country_{experiment_slug}.csv"
+                    REPORT_DIR
+                    / f"performance_by_country_{experiment_slug}.csv"
                 )
 
                 yearly_performance.to_csv(
@@ -396,7 +486,6 @@ def run_experiments(
                     "\nPerformance analysis skipped: "
                     "test data is not suitable."
                 )
-
 
             # -----------------------------------------------------------------
             # Results
@@ -453,7 +542,9 @@ def run_experiments(
     )
 
     print(
-        results
+        results.to_string(
+            index=False
+        )
     )
 
     print(
