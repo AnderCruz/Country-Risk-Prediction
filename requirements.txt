@@ -8,4 +8,6 @@ joblib
 openpyxl
 mlflow
 dvc[s3]
+
 pytest
+boto3

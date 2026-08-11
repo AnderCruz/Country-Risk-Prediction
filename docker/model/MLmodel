@@ -1,0 +1,42 @@
+artifact_path: /home/anderjcruz/projects/Country-Risk-Prediction/mlruns/1/models/m-721f7caea2044156bda3c2361e85367d/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.12.3
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.9.0
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.15.1
+model_id: m-721f7caea2044156bda3c2361e85367d
+model_size_bytes: 99869450
+model_uuid: m-721f7caea2044156bda3c2361e85367d
+prompts: null
+run_id: 03d5bdbc2d5b42529faf9ed2a17df1b2
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "gdp_per_capita", "required": true}, {"type":
+    "double", "name": "inflation", "required": true}, {"type": "double", "name": "life_expectancy",
+    "required": true}, {"type": "double", "name": "population", "required": true},
+    {"type": "double", "name": "population_growth", "required": true}, {"type": "double",
+    "name": "unemployment", "required": true}, {"type": "double", "name": "exports",
+    "required": true}, {"type": "double", "name": "gdp_lag1", "required": true}, {"type":
+    "double", "name": "inflation_lag1", "required": true}, {"type": "double", "name":
+    "life_expectancy_lag1", "required": true}, {"type": "double", "name": "economic_risk",
+    "required": true}, {"type": "double", "name": "governance_risk", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float64", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-08-11 05:10:59.663174'
