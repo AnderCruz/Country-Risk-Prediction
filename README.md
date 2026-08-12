@@ -230,7 +230,56 @@ python scripts/inference.py
 ├── requirements.txt          # Python dependencies
 └── README.md
 
-🛣️ Roadmap[ ] Advanced Modeling: Benchmark XGBoost, LightGBM, and CatBoost models.[ ] Explainability: Integrate SHAP values for global and local feature importance.[ ] CI/CD Pipeline: GitHub Actions workflow for automated testing, linting, and deployment.[ ] Drift Monitoring: Continuous monitoring for data drift and model performance decay.[ ] Frontend Dashboard: Interactive Streamlit Web UI for real-time risk simulation.
+## 🔄 CI/CD & MLOps Deployment
+
+GitHub Pull Request
+        │
+        ▼
+      CI
+        │
+        ├── Dependencies
+        ├── Import validation
+        ├── DVC validation
+        ├── Unit/integration tests
+        └── Docker build
+                │
+                ▼
+             main
+                │
+                ▼
+              CD
+                │
+                ▼
+          GitHub OIDC
+                │
+                ▼
+          AWS IAM Role
+                │
+        ┌───────┴────────┐
+        ▼                ▼
+      DVC/S3            ECR
+        │                │
+        └───────┬────────┘
+                ▼
+        SageMaker Model
+                │
+                ▼
+       Endpoint Config
+                │
+                ▼
+       SageMaker Endpoint
+                │
+                ▼
+          Verification
+
+
+
+🛣️ Roadmap
+[ ] Advanced Modeling: Benchmark XGBoost, LightGBM, and CatBoost models.
+[ ] Explainability: Integrate SHAP values for global and local feature importance.
+[ ] CI/CD Pipeline: GitHub Actions workflow for automated testing, linting, and deployment.
+[ ] Drift Monitoring: Continuous monitoring for data drift and model performance decay.
+[ ] Frontend Dashboard: Interactive Streamlit Web UI for real-time risk simulation.
 
 ✅ Current StatusStatus: Active DevelopmentUnit Tests: 65 PassedIntegration Tests: 2 PassedInference Pipeline: Single & Batch PASSSageMaker Endpoint Status: InServiceCloudWatch Alarm: OK
 
