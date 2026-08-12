@@ -15,7 +15,7 @@ stages:
       nfiles: 16
     - path: src/features
       hash: md5
-      md5: dc4eaba40326b6d46978b192cc0c4646.dir
+      md5: 75c57c5f77fea415d300c8d580137ff8.dir
       size: 20806
       nfiles: 15
     - path: src/pipelines/prepare_data.py

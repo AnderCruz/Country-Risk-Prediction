@@ -36,6 +36,9 @@ def train_model(
     The trained model is:
         1. Saved locally as a .pkl file
         2. Logged to MLflow as a model artifact
+
+    Model registration is intentionally handled outside this function,
+    after model validation has passed.
     """
 
     print("\nTraining Random Forest")
