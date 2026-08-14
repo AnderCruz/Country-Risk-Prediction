@@ -1,0 +1,246 @@
+{
+  "start": "-PT6H",
+  "periodOverride": "inherit",
+  "widgets": [
+    {
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 24,
+      "height": 3,
+      "properties": {
+        "markdown": "# Country Risk Prediction - Production Monitoring\n\n**Endpoint:** `country-risk-prediction-v7-v3`  \n**Variant:** `AllTraffic`  \n**Region:** `us-east-1`\n\nOperational monitoring for production inference traffic, latency and errors."
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 3,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "stacked": false,
+        "metrics": [
+          [
+            "AWS/SageMaker",
+            "Invocations",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Sum",
+              "label": "Invocations"
+            }
+          ],
+          [
+            "AWS/SageMaker",
+            "InvocationsPerInstance",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Sum",
+              "label": "Invocations / Instance"
+            }
+          ]
+        ],
+        "region": "us-east-1",
+        "title": "Inference Traffic",
+        "period": 60,
+        "yAxis": {
+          "left": {
+            "label": "Requests",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 3,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "stacked": false,
+        "metrics": [
+          [
+            "AWS/SageMaker",
+            "ModelLatency",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Average",
+              "label": "Average Model Latency"
+            }
+          ],
+          [
+            "AWS/SageMaker",
+            "ModelLatency",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Maximum",
+              "label": "Maximum Model Latency"
+            }
+          ]
+        ],
+        "region": "us-east-1",
+        "title": "Model Latency",
+        "period": 60,
+        "yAxis": {
+          "left": {
+            "label": "Microseconds",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 9,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "stacked": false,
+        "metrics": [
+          [
+            "AWS/SageMaker",
+            "OverheadLatency",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Average",
+              "label": "Average Overhead Latency"
+            }
+          ],
+          [
+            "AWS/SageMaker",
+            "OverheadLatency",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Maximum",
+              "label": "Maximum Overhead Latency"
+            }
+          ]
+        ],
+        "region": "us-east-1",
+        "title": "SageMaker Overhead Latency",
+        "period": 60,
+        "yAxis": {
+          "left": {
+            "label": "Microseconds",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 9,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "stacked": false,
+        "metrics": [
+          [
+            "AWS/SageMaker",
+            "ConcurrentRequestsPerModel",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Maximum",
+              "label": "Concurrent Requests"
+            }
+          ]
+        ],
+        "region": "us-east-1",
+        "title": "Concurrency",
+        "period": 60,
+        "yAxis": {
+          "left": {
+            "label": "Requests",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 15,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "stacked": false,
+        "metrics": [
+          [
+            "AWS/SageMaker",
+            "InvocationModelErrors",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Sum",
+              "label": "Model Errors"
+            }
+          ],
+          [
+            "AWS/SageMaker",
+            "Invocation4XXErrors",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Sum",
+              "label": "4XX Errors"
+            }
+          ],
+          [
+            "AWS/SageMaker",
+            "Invocation5XXErrors",
+            "EndpointName",
+            "country-risk-prediction-v7-v3",
+            "VariantName",
+            "AllTraffic",
+            {
+              "stat": "Sum",
+              "label": "5XX Errors"
+            }
+          ]
+        ],
+        "region": "us-east-1",
+        "title": "Inference Errors",
+        "period": 60,
+        "yAxis": {
+          "left": {
+            "label": "Errors",
+            "showUnits": false
+          }
+        }
+      }
+    }
+  ]
+}

@@ -49,3 +49,20 @@ Thumbs.db
 # MLflow
 mlflow.db
 mlruns/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Monitoring temporary / experimental files
+monitoring/drift/generate_test_traffic.py.bak
+monitoring/drift/generate_test_traffic_backup.py
+monitoring/drift/generate_test_traffic_severe.py
+monitoring/drift/reference/production_drift_test.csv
+
+# Local monitoring outputs
+monitoring/reports/
