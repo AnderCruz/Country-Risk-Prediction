@@ -1,136 +1,512 @@
-# 🌍 Country Risk Prediction
+# 🌍 MLOps Country Risk Prediction
 
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-active--development-orange.svg)](#current-status)
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python\&logoColor=white)](https://www.python.org/)
+[![Scikit-Learn](https://img.shields.io/badge/scikit--learn-1.9.0-F7931E?logo=scikit-learn\&logoColor=white)](https://scikit-learn.org/)
+[![MLflow](https://img.shields.io/badge/MLflow-3.15.1-0194E2?logo=mlflow\&logoColor=white)](https://mlflow.org/)
+[![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker\&logoColor=white)](https://www.docker.com/)
+[![AWS](https://img.shields.io/badge/AWS-SageMaker%20%7C%20ECR%20%7C%20S3%20%7C%20CloudWatch-232F3E?logo=amazonaws\&logoColor=white)](https://aws.amazon.com/)
+[![Tests](https://img.shields.io/badge/tests-65%20passed-success)](#testing-and-quality-assurance)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-An end-to-end **Data Science & MLOps** platform for predicting country-level economic and governance risk metrics using real-world macroeconomic indicators.
-
-This repository covers the complete machine learning lifecycle: automated data ingestion, validation, feature engineering, model training, experiment tracking, artifact versioning, containerisation, automated testing, and scalable cloud deployment on AWS SageMaker with CloudWatch monitoring.
+> **An end-to-end production-oriented MLOps platform for country risk prediction, combining macroeconomic data, machine learning, experiment tracking, model versioning, containerized inference, AWS SageMaker deployment, automated testing, and cloud observability.**
 
 ---
 
 ## 📌 Table of Contents
-- [Project Overview](#-project-overview)
-- [Architecture & Workflow](#-architecture--workflow)
-- [Current Implementation](#-current-implementation)
-- [Feature Store & Data Dictionary](#-feature-store--data-dictionary)
-- [Model Serving & API Payload](#-model-serving--api-payload)
-- [Testing & Quality Assurance](#-testing--quality-assurance)
-- [Model Versioning & Artifact Storage](#-model-versioning--artifact-storage)
-- [AWS Cloud Infrastructure](#-aws-cloud-infrastructure)
-- [Monitoring & Observability](#-monitoring--observability)
-- [Baseline Model Performance](#-baseline-model-performance)
-- [Quickstart & Local Development](#-quickstart--local-development)
-- [Project Structure](#-project-structure)
-- [Project Roadmap](#-roadmap)
-- [Current Validation Status](#-current-status)
-- [Author & Contact](#-author)
+
+* [Project Overview](#-project-overview)
+* [Business Problem](#-business-problem)
+* [Project Objectives](#-project-objectives)
+* [Solution Overview](#-solution-overview)
+* [Architecture](#-architecture)
+* [End-to-End ML Lifecycle](#-end-to-end-ml-lifecycle)
+* [Data Pipeline](#-data-pipeline)
+* [Feature Engineering](#-feature-engineering)
+* [Machine Learning Model](#-machine-learning-model)
+* [Experiment Tracking with MLflow](#-experiment-tracking-with-mlflow)
+* [Model Serialization and Versioning](#-model-serialization-and-versioning)
+* [Model Serving](#-model-serving)
+* [Docker and Containerization](#-docker-and-containerization)
+* [AWS Cloud Deployment](#-aws-cloud-deployment)
+* [SageMaker Endpoint](#-sagemaker-endpoint)
+* [Monitoring and Observability](#-monitoring-and-observability)
+* [Testing and Quality Assurance](#-testing-and-quality-assurance)
+* [CI/CD](#-cicd)
+* [API Inference](#-api-inference)
+* [Feature Dictionary](#-feature-dictionary)
+* [Project Structure](#-project-structure)
+* [Local Development](#-local-development)
+* [Production Deployment Flow](#-production-deployment-flow)
+* [Current Production Status](#-current-production-status)
+* [Roadmap](#-roadmap)
+* [Key MLOps Practices Demonstrated](#-key-mlops-practices-demonstrated)
+* [Author](#-author)
 
 ---
 
-## 🎯 Project Overview
+# 🎯 Project Overview
 
-Understanding economic risk on a global scale requires combining historical macroeconomic trends with governance metrics. The primary objective of this project is to build a robust, reproducible, and production-ready machine learning framework that ingests data from the **World Bank API**, processes complex time-series features, and serves real-time predictions via cloud endpoints.
+**MLOps Country Risk Prediction** is an end-to-end machine learning engineering project designed to demonstrate how a data science model can be transformed into a reproducible, versioned, tested, containerized, deployed, and monitored production service.
 
-### Key Highlights
-* **Automated Data Pipeline:** Pulls macroeconomic indicators directly from public APIs with automated schema validation and cleaning.
-* **Experiment Tracking:** Uses **MLflow** for tracking hyperparameters, evaluation metrics, and model versions.
-* **Large File Versioning:** Manages heavy model binaries outside of Git using **DVC** and **Amazon S3**.
-* **Containerised Cloud Deployment:** Packages serving environments into Docker containers hosted on **AWS ECR** and served through **AWS SageMaker**.
-* **Production Observability:** Endpoint health is continuously monitored using **Amazon CloudWatch** with automated 5XX alarm triggers.
+The project goes beyond model development.
 
----
-
-## 🏗️ Architecture & Workflow
-
-The pipeline represents a complete MLOps workflow from source data to endpoint deployment:
+It implements the complete lifecycle:
 
 ```text
-                           World Bank API
-                                 │
-                                 ▼
-                          Data Ingestion
-                                 │
-                                 ▼
-                         Data Validation
-                                 │
-                                 ▼
-                          Data Cleaning
-                                 │
-                                 ▼
-                        Feature Engineering
-                                 │
-                                 ▼
-                       Exploratory Analysis
-                                 │
-                                 ▼
-                        Model Development
-                                 │
-                                 ▼
-                              MLflow
-                                 │
-                                 ▼
-                          Model Registry
-                                 │
-                                 ▼
-                           DVC + Amazon S3
-                                 │
-                                 ▼
-                            Docker Image
-                                 │
-                                 ▼
-                             Amazon ECR
-                                 │
-                                 ▼
-                        Amazon SageMaker
-                            Endpoint
-                                 │
-                   ┌─────────────┴─────────────┐
-                   ▼                           ▼
-            Single Inference             Batch Inference
-                   │                           │
-                   └─────────────┬─────────────┘
-                                 ▼
-                             CloudWatch
-                                 │
-                                 ▼
-                          Error Monitoring
-                                 │
-                                 ▼
-                           5XX Alarm
+Data
+ ↓
+Data Ingestion
+ ↓
+Data Validation
+ ↓
+Data Cleaning
+ ↓
+Feature Engineering
+ ↓
+Model Training
+ ↓
+Experiment Tracking
+ ↓
+Model Versioning
+ ↓
+Artifact Storage
+ ↓
+Containerization
+ ↓
+Cloud Deployment
+ ↓
+Real-Time Inference
+ ↓
+Monitoring
+```
 
+The system uses macroeconomic and governance-related indicators to estimate a country-level risk score.
 
-🚀 MLOps Infrastructure: Docker containerisation (`Dockerfile.sagemaker`), AWS ECR repository integration, SageMaker endpoint deployment, and boto3 client orchestration.
+The primary objective is not only predictive performance, but also **reproducibility, reliability, traceability, deployment automation, and operational observability**.
 
 ---
 
-## 📋 Feature Store & Data Dictionary
+# 💼 Business Problem
 
-The model accepts macroeconomic indicators and generated time-lagged variables to produce a risk score:
+Country risk assessment is relevant to organizations involved in:
 
-| Feature | Type | Description |
-|---|---|---|
-| `gdp_per_capita` | `float` | Gross Domestic Product per capita (USD) |
-| `inflation` | `float` | Annual inflation rate (%) |
-| `life_expectancy` | `float` | Life expectancy at birth (years) |
-| `population` | `float` | Total country population |
-| `population_growth` | `float` | Annual population growth rate (%) |
-| `unemployment` | `float` | Unemployment rate (% of total labor force) |
-| `exports` | `float` | Exports of goods and services (% of GDP) |
-| `gdp_lag1` | `float` | Previous period GDP per capita |
-| `inflation_lag1` | `float` | Previous period inflation rate |
-| `life_expectancy_lag1` | `float` | Previous period life expectancy |
-| `economic_risk` | `float` | Composite macroeconomic risk metric |
-| `governance_risk` | `float` | Composite governance/institutional risk metric |
+* International investment
+* Financial analysis
+* Credit risk assessment
+* Portfolio allocation
+* International expansion
+* Sovereign risk analysis
+* Economic research
+* Strategic decision-making
+
+Traditional country risk analysis often combines multiple economic, demographic, institutional, and governance indicators.
+
+This project explores how these heterogeneous indicators can be transformed into a machine learning pipeline capable of producing a standardized country risk prediction.
+
+The machine learning problem is formulated as a supervised regression task.
+
+The model receives a set of macroeconomic and risk-related features and produces a continuous numerical risk prediction.
 
 ---
 
-## 🔌 Model Serving & API Payload
+# 🎯 Project Objectives
 
-The trained model is packaged using MLflow and served through a custom **FastAPI / Uvicorn** server inside the container listening on **Port 8080**.
+The project was designed around five major objectives.
 
-### Example JSON Payload (`dataframe_records` format):
+### 1. Build a reproducible machine learning pipeline
+
+The same data processing and training workflow should be executable repeatedly with predictable results.
+
+### 2. Implement production-oriented MLOps practices
+
+The project incorporates:
+
+* Data versioning
+* Model versioning
+* Experiment tracking
+* Automated testing
+* Containerization
+* Cloud deployment
+* Monitoring
+* Infrastructure integration
+
+### 3. Separate development from production
+
+Model development occurs independently from model serving.
+
+The final model artifact is packaged and deployed through a dedicated inference environment.
+
+### 4. Make models deployable
+
+The trained model is converted into a production artifact and exposed through an HTTP inference service.
+
+### 5. Demonstrate the complete ML lifecycle
+
+The project intentionally covers the transition:
+
+> **From notebook → reproducible pipeline → versioned model → container → cloud endpoint → monitored production service.**
+
+---
+
+# 🏗️ Solution Overview
+
+The architecture combines open economic data, Python-based machine learning, MLflow, DVC, Docker, and AWS.
+
+```text
+                         ┌─────────────────────┐
+                         │   World Bank API    │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │   Data Ingestion    │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │ Data Validation     │
+                         │ & Data Cleaning     │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │ Feature Engineering │
+                         │ & Lag Generation    │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │ Model Training      │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │      MLflow         │
+                         │ Experiment Tracking │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │ Model Artifact      │
+                         │    Versioning       │
+                         └──────────┬──────────┘
+                                    │
+                           ┌────────┴────────┐
+                           ▼                 ▼
+                       DVC + S3          MLflow
+                           │
+                           ▼
+                    ┌───────────────┐
+                    │ Docker Image  │
+                    └───────┬───────┘
+                            │
+                            ▼
+                    ┌───────────────┐
+                    │   AWS ECR     │
+                    └───────┬───────┘
+                            │
+                            ▼
+                    ┌───────────────┐
+                    │ AWS SageMaker │
+                    │   Endpoint    │
+                    └───────┬───────┘
+                            │
+                 ┌──────────┴──────────┐
+                 ▼                     ▼
+          Single Inference       Batch Inference
+                 │                     │
+                 └──────────┬──────────┘
+                            ▼
+                    ┌───────────────┐
+                    │  CloudWatch   │
+                    │  Monitoring   │
+                    └───────┬───────┘
+                            │
+                            ▼
+                       5XX Alarms
+```
+
+---
+
+# 🔄 End-to-End ML Lifecycle
+
+The project follows a structured ML lifecycle.
+
+## Phase 1 — Data Acquisition
+
+Macroeconomic indicators are retrieved from the World Bank API.
+
+The ingestion layer is responsible for:
+
+* API communication
+* Data extraction
+* Schema handling
+* Country identification
+* Time-period alignment
+* Raw data persistence
+
+---
+
+## Phase 2 — Data Validation
+
+Before entering the modeling pipeline, data is validated for:
+
+* Expected columns
+* Data types
+* Missing values
+* Numeric constraints
+* Duplicate observations
+* Structural consistency
+
+This prevents malformed upstream data from silently propagating into the model.
+
+---
+
+## Phase 3 — Data Cleaning
+
+The cleaning process handles:
+
+* Missing observations
+* Invalid values
+* Data type normalization
+* Temporal consistency
+* Feature alignment
+
+The objective is to create a stable dataset suitable for downstream feature engineering.
+
+---
+
+## Phase 4 — Feature Engineering
+
+The pipeline generates model-ready features from the original economic indicators.
+
+This includes temporal features such as lagged variables.
+
+For example:
+
+```text
+GDP(t)
+      │
+      └──► GDP(t-1)
+
+Inflation(t)
+      │
+      └──► Inflation(t-1)
+```
+
+Lagged variables allow the model to incorporate historical information rather than relying exclusively on current-period observations.
+
+---
+
+# 🧮 Feature Engineering
+
+The current model uses **12 numerical features**.
+
+| Feature                | Description                                       |
+| ---------------------- | ------------------------------------------------- |
+| `gdp_per_capita`       | GDP per capita                                    |
+| `inflation`            | Annual inflation rate                             |
+| `life_expectancy`      | Life expectancy at birth                          |
+| `population`           | Total population                                  |
+| `population_growth`    | Annual population growth rate                     |
+| `unemployment`         | Unemployment rate                                 |
+| `exports`              | Exports as a percentage of GDP                    |
+| `gdp_lag1`             | Previous-period GDP per capita                    |
+| `inflation_lag1`       | Previous-period inflation                         |
+| `life_expectancy_lag1` | Previous-period life expectancy                   |
+| `economic_risk`        | Composite economic risk indicator                 |
+| `governance_risk`      | Composite governance/institutional risk indicator |
+
+All production inference inputs are numerical and validated before reaching the model.
+
+---
+
+# 🤖 Machine Learning Model
+
+The initial production pipeline uses a **Random Forest regression model** as the baseline estimator.
+
+Random Forest was selected as a strong baseline because it:
+
+* Handles nonlinear relationships
+* Captures feature interactions
+* Requires limited assumptions about functional form
+* Works well with heterogeneous numerical features
+* Provides a useful benchmark for future model comparison
+
+The project is deliberately structured so that the model implementation can evolve without redesigning the surrounding MLOps infrastructure.
+
+This allows future experimentation with:
+
+* XGBoost
+* LightGBM
+* CatBoost
+* Gradient Boosting
+* Ensemble approaches
+* Explainable ML techniques
+
+---
+
+# 📊 Baseline Model Performance
+
+The baseline Random Forest model achieved the following evaluation results:
+
+| Metric   |       Score |
+| -------- | ----------: |
+| **MAE**  |  **8.6462** |
+| **RMSE** | **14.8474** |
+| **R²**   |  **0.1907** |
+
+### Interpretation
+
+The baseline provides a reproducible reference point for future modeling experiments.
+
+The relatively modest R² also highlights an important aspect of the project:
+
+> The objective is not to present an artificially optimized model, but to establish a transparent and reproducible ML system where future models can be benchmarked against a known baseline.
+
+This makes the repository suitable for continued experimentation and model improvement.
+
+---
+
+# 🧪 Experiment Tracking with MLflow
+
+**MLflow** is used to track the machine learning lifecycle.
+
+The project records model metadata including:
+
+* Model version
+* Parameters
+* Evaluation metrics
+* Model artifacts
+* Python environment
+* Dependency information
+* Serialization format
+
+The current production artifact metadata includes:
+
+```text
+MLflow:       3.15.1
+Python:       3.12.3
+scikit-learn: 1.9.0
+Serialization: skops
+```
+
+MLflow provides traceability between:
+
+```text
+Experiment
+    ↓
+Training Run
+    ↓
+Model Artifact
+    ↓
+Model Version
+    ↓
+Deployment
+```
+
+This is critical for reproducibility and production governance.
+
+---
+
+# 📦 Model Serialization and Versioning
+
+Large model binaries are intentionally kept outside the Git repository.
+
+The project uses:
+
+* **DVC** for model/data versioning
+* **Amazon S3** for artifact storage
+* **MLflow** for model metadata and lifecycle tracking
+* **skops** for secure scikit-learn model serialization
+
+The current production model artifact is approximately **100 MB**.
+
+The model is stored in S3 using a versioned structure:
+
+```text
+s3://country-risk-prediction-mlops-models-2026/
+└── models/
+    └── country-risk-prediction/
+        └── v7/
+            ├── model.skops
+            ├── MLmodel
+            └── environment metadata
+```
+
+This architecture keeps Git focused on source code while using dedicated storage systems for large ML artifacts.
+
+---
+
+# 🐳 Docker and Containerization
+
+The inference environment is containerized using Docker.
+
+The SageMaker-specific image is defined through:
+
+```text
+Dockerfile.sagemaker
+```
+
+The container includes:
+
+* Python runtime
+* Model artifact
+* ML dependencies
+* FastAPI
+* Uvicorn
+* Prediction logic
+* Request validation
+
+Containerization provides environment consistency across:
+
+```text
+Development
+     ↓
+Testing
+     ↓
+Container Build
+     ↓
+AWS ECR
+     ↓
+SageMaker
+```
+
+This eliminates many environment-related inconsistencies between development and production.
+
+---
+
+# 🔌 Model Serving
+
+The model is served through a custom **FastAPI/Uvicorn** inference server.
+
+The application listens on:
+
+```text
+Port 8080
+```
+
+The serving layer is responsible for:
+
+1. Receiving inference requests
+2. Validating payload structure
+3. Validating required features
+4. Converting input into the expected dataframe format
+5. Executing model inference
+6. Returning predictions
+
+The service supports both:
+
+* Single-record inference
+* Batch inference
+
+---
+
+# 📡 API Inference
+
+The inference endpoint accepts requests using a dataframe-records structure.
+
+Example:
 
 ```json
 {
@@ -151,140 +527,741 @@ The trained model is packaged using MLflow and served through a custom **FastAPI
     }
   ]
 }
-Both single-record queries and batch inferences are supported and validated.🧪 Testing & Quality AssuranceAutomated unit, functional, and integration tests ensure system stability prior to cloud promotion.Total Test Suite: 65 passed, 1 warningRunning TestsBash# Run the entire unit and functional test suite
-pytest -q
+```
 
-# Run live AWS SageMaker integration tests
-pytest -m integration -q
-Integration tests verify live payload delivery to the SageMaker endpoint for both single and batch requests.📦 Model Versioning & Artifact StorageTo avoid tracking large binary files in Git, DVC (Data Version Control) handles model storage with Amazon S3 serving as the remote backend.PlaintextGit Repository
- │
- └── model.skops.dvc
-          │
-          ▼
-     DVC Remote
-          │
-          ▼
-     Amazon S3 Bucket
-          │
-          ▼
-     model.skops (96 MB Artifact)
-
-☁️ AWS Cloud InfrastructureThe model is deployed as a real-time HTTP endpoint on AWS SageMaker.Active Endpoint Name: country-risk-prediction-v7-v3Deployment PipelineBuild runtime image using Dockerfile.sagemaker.Push container image to Amazon ECR.Register model instance in SageMaker Model Registry.Spin up real-time HTTPS SageMaker Endpoint.📊 Monitoring & ObservabilityEndpoint operational metrics are published to Amazon CloudWatch:InvocationsModelLatencyInvocation5XXErrorsInvocationModelErrorsAlarm Configuration (country-risk-prediction-v7-v3-5xx)Metric: Invocation5XXErrorsStatistic: SumThreshold: >= 1 error within a 5-minute evaluation period.Current Alarm State: OK (0 errors reported post-deployment).📈 Baseline Model PerformanceThe initial Random Forest baseline evaluation yields the following performance metrics on test evaluation splits:MetricScoreDescriptionMAE8.6462Mean Absolute ErrorRMSE14.8474Root Mean Squared ErrorR²0.1907Coefficient of Determination💻 Quickstart & Local Development1. Clone & Set Up EnvironmentBash# Clone repository
-git clone [https://github.com/AnderCruz/Country-Risk-Prediction.git](https://github.com/AnderCruz/Country-Risk-Prediction.git)
-cd Country-Risk-Prediction
-
-# Create and activate virtual environment
-python -m venv .venv
-
-# Linux / macOS:
-source .venv/bin/activate
-
-# Windows:
-.venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-2. Pipeline CommandsBash# Execute full data ingestion & training pipeline
-python src/main.py
-
-# Run unit tests
-pytest -q
-
-# Execute live SageMaker inference script
-python scripts/inference.py
-📁 Project StructurePlaintextCountry-Risk-Prediction/
-│
-├── data/
-│   ├── raw/                  # Raw World Bank API pulls
-│   ├── processed/            # Cleaned and engineered features
-│   └── external/             # Supplementary metadata
-│
-├── docker/
-│   └── model/
-│       ├── MLmodel           # MLflow model package definition
-│       ├── serve.py          # Custom FastAPI serving engine
-│       ├── requirements.txt  # Container dependencies
-│       └── model.skops.dvc   # DVC tracker for model file
-│
-├── notebooks/                # Exploratory Data Analysis & experiments
-│
-├── scripts/
-│   ├── __init__.py
-│   └── inference.py          # Boto3 client for endpoint testing
-│
-├── src/
-│   ├── api/                  # API utilities and schema validators
-│   ├── data/                 # Ingestion & validation modules
-│   ├── features/             # Feature transformers and lag generators
-│   ├── models/               # Model training and promotion scripts
-│   ├── visualization/        # Performance plots and metrics dashboard
-│   ├── utils/                # AWS & MLflow helpers
-│   ├── config.py             # Central project configuration
-│   └── main.py               # Main execution entrypoint
-│
-├── tests/                    # Unit, functional, and integration tests
-├── Dockerfile.sagemaker      # AWS SageMaker runtime container definition
-├── dvc.yaml                  # DVC pipeline stages
-├── dvc.lock                  # DVC lockfile
-├── pytest.ini                # Pytest settings and custom markers
-├── requirements.txt          # Python dependencies
-└── README.md
-
-## 🔄 CI/CD & MLOps Deployment
-
-GitHub Pull Request
-        │
-        ▼
-      CI
-        │
-        ├── Dependencies
-        ├── Import validation
-        ├── DVC validation
-        ├── Unit/integration tests
-        └── Docker build
-                │
-                ▼
-             main
-                │
-                ▼
-              CD
-                │
-                ▼
-          GitHub OIDC
-                │
-                ▼
-          AWS IAM Role
-                │
-        ┌───────┴────────┐
-        ▼                ▼
-      DVC/S3            ECR
-        │                │
-        └───────┬────────┘
-                ▼
-        SageMaker Model
-                │
-                ▼
-       Endpoint Config
-                │
-                ▼
-       SageMaker Endpoint
-                │
-                ▼
-          Verification
-
-
-
-🛣️ Roadmap
-[ ] Advanced Modeling: Benchmark XGBoost, LightGBM, and CatBoost models.
-[ ] Explainability: Integrate SHAP values for global and local feature importance.
-[ ] CI/CD Pipeline: GitHub Actions workflow for automated testing, linting, and deployment.
-[ ] Drift Monitoring: Continuous monitoring for data drift and model performance decay.
-[ ] Frontend Dashboard: Interactive Streamlit Web UI for real-time risk simulation.
-
-✅ Current StatusStatus: Active DevelopmentUnit Tests: 65 PassedIntegration Tests: 2 PassedInference Pipeline: Single & Batch PASSSageMaker Endpoint Status: InServiceCloudWatch Alarm: OK
+The same inference contract can be used locally and through the deployed SageMaker endpoint.
 
 ---
 
-👤 AuthorAnderson CruzData Scientist | Machine Learning & Predictive Analytics
-💼 LinkedIn: linkedin.com/in/anderjcruz
-🐙 GitHub: github.com/AnderCruzEOF
+# ☁️ AWS Cloud Deployment
+
+The production infrastructure is built around AWS managed services.
+
+### AWS Services
+
+| Service               | Purpose                                  |
+| --------------------- | ---------------------------------------- |
+| **Amazon S3**         | ML artifact and model storage            |
+| **AWS ECR**           | Docker image registry                    |
+| **Amazon SageMaker**  | Model hosting and inference              |
+| **Amazon CloudWatch** | Monitoring and operational observability |
+| **AWS IAM**           | Secure service permissions               |
+| **AWS STS/OIDC**      | Secure CI/CD authentication              |
+
+The deployment process follows:
+
+```text
+Source Code
+    ↓
+Docker Build
+    ↓
+Amazon ECR
+    ↓
+SageMaker Model
+    ↓
+Endpoint Configuration
+    ↓
+SageMaker Endpoint
+    ↓
+Inference Verification
+    ↓
+CloudWatch Monitoring
+```
+
+---
+
+# 🚀 SageMaker Endpoint
+
+The current deployed model is:
+
+```text
+country-risk-prediction-v7-v3
+```
+
+The SageMaker model uses a dedicated ECR container image and an IAM execution role.
+
+The production deployment includes:
+
+```text
+Model
+ ↓
+Container
+ ↓
+SageMaker Model
+ ↓
+Endpoint Configuration
+ ↓
+Real-Time Endpoint
+```
+
+This provides a production-style HTTPS inference interface suitable for real-time prediction requests.
+
+---
+
+# 📈 Monitoring and Observability
+
+Production observability is implemented through **Amazon CloudWatch**.
+
+The endpoint exposes operational metrics including:
+
+* Invocations
+* Model latency
+* Invocation latency
+* 5XX errors
+* Model errors
+
+A dedicated alarm monitors endpoint failures.
+
+### 5XX Alarm
+
+```text
+Alarm:
+country-risk-prediction-v7-v3-5xx
+
+Metric:
+Invocation5XXErrors
+
+Statistic:
+Sum
+
+Threshold:
+>= 1 error
+
+Evaluation Period:
+5 minutes
+```
+
+The current post-deployment status is:
+
+```text
+Alarm State: OK
+5XX Errors: 0
+```
+
+The monitoring layer demonstrates that deployment does not end when the endpoint becomes available.
+
+The system must also be observable after deployment.
+
+---
+
+# 🧪 Testing and Quality Assurance
+
+Testing is integrated throughout the project.
+
+The test suite includes:
+
+* Unit tests
+* Functional tests
+* Integration tests
+* API validation tests
+* Model inference tests
+* AWS endpoint integration tests
+
+Current test status:
+
+```text
+65 tests passed
+2 integration tests passed
+```
+
+Run the standard test suite:
+
+```bash
+pytest -q
+```
+
+Run AWS integration tests:
+
+```bash
+pytest -m integration -q
+```
+
+Integration tests validate real communication with the deployed SageMaker endpoint.
+
+This ensures that the system is tested not only at the function level, but also at the infrastructure integration level.
+
+---
+
+# 🔄 CI/CD
+
+The repository is structured around a CI/CD-oriented development workflow.
+
+The conceptual pipeline is:
+
+```text
+Developer
+    │
+    ▼
+GitHub Pull Request
+    │
+    ▼
+Continuous Integration
+    │
+    ├── Dependency validation
+    ├── Import validation
+    ├── DVC validation
+    ├── Automated tests
+    └── Docker build
+    │
+    ▼
+Protected Main Branch
+    │
+    ▼
+Continuous Deployment
+    │
+    ▼
+GitHub OIDC
+    │
+    ▼
+AWS IAM Role
+    │
+    ├───────────────┐
+    ▼               ▼
+   S3              ECR
+    │               │
+    └───────┬───────┘
+            ▼
+      SageMaker
+            │
+            ▼
+       Verification
+            │
+            ▼
+       CloudWatch
+```
+
+The architecture separates source control, testing, artifact management, container registry, deployment, and monitoring.
+
+---
+
+# 🔐 Security and Reproducibility
+
+The project avoids embedding cloud credentials directly into application code.
+
+AWS access is managed through IAM-based authentication and role-based permissions.
+
+The production architecture therefore separates:
+
+```text
+Application Code
+        +
+Model Artifacts
+        +
+Container Images
+        +
+Cloud Permissions
+```
+
+This reduces the coupling between application logic and infrastructure credentials.
+
+The use of versioned artifacts also improves reproducibility by allowing a deployed model to be traced back to a specific artifact version.
+
+---
+
+# 📁 Project Structure
+
+```text
+MLOps-Country-Risk-Prediction/
+│
+├── data/
+│   ├── raw/
+│   │   └── Raw World Bank API data
+│   │
+│   ├── processed/
+│   │   └── Cleaned and engineered datasets
+│   │
+│   └── external/
+│       └── Supplementary metadata
+│
+├── docker/
+│   └── model/
+│       ├── MLmodel
+│       ├── serve.py
+│       ├── requirements.txt
+│       └── model.skops.dvc
+│
+├── notebooks/
+│   └── Exploratory analysis and experiments
+│
+├── scripts/
+│   ├── __init__.py
+│   └── inference.py
+│
+├── src/
+│   ├── api/
+│   │   └── API utilities and validation
+│   │
+│   ├── data/
+│   │   └── Data ingestion and validation
+│   │
+│   ├── features/
+│   │   └── Feature engineering
+│   │
+│   ├── models/
+│   │   └── Model training and promotion
+│   │
+│   ├── visualization/
+│   │   └── Metrics and visualizations
+│   │
+│   ├── utils/
+│   │   └── AWS and MLflow utilities
+│   │
+│   ├── config.py
+│   └── main.py
+│
+├── tests/
+│   ├── Unit tests
+│   ├── Functional tests
+│   └── Integration tests
+│
+├── Dockerfile.sagemaker
+├── dvc.yaml
+├── dvc.lock
+├── pytest.ini
+├── requirements.txt
+└── README.md
+```
+
+---
+
+# 💻 Local Development
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/AnderCruz/MLOps-Country-Risk-Prediction.git
+
+cd MLOps-Country-Risk-Prediction
+```
+
+---
+
+## 2. Create a Virtual Environment
+
+### Linux / macOS
+
+```bash
+python -m venv .venv
+
+source .venv/bin/activate
+```
+
+### Windows
+
+```powershell
+python -m venv .venv
+
+.venv\Scripts\activate
+```
+
+---
+
+## 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 4. Run the Main Pipeline
+
+```bash
+python src/main.py
+```
+
+---
+
+## 5. Run Tests
+
+```bash
+pytest -q
+```
+
+---
+
+## 6. Run Integration Tests
+
+AWS credentials and access to the deployed endpoint are required.
+
+```bash
+pytest -m integration -q
+```
+
+---
+
+## 7. Run Inference
+
+```bash
+python scripts/inference.py
+```
+
+---
+
+# 🔬 Reproducibility
+
+The project combines several mechanisms to improve reproducibility.
+
+### Source Code
+
+Git provides version control for:
+
+* Python source code
+* Configuration
+* Tests
+* Infrastructure definitions
+* Pipeline definitions
+
+### Data and Model Artifacts
+
+DVC and Amazon S3 provide versioning for large ML artifacts.
+
+### Experiment Metadata
+
+MLflow tracks:
+
+* Parameters
+* Metrics
+* Model versions
+* Environment metadata
+
+### Runtime Environment
+
+Docker provides a reproducible production runtime.
+
+Together:
+
+```text
+Git
+ +
+DVC
+ +
+MLflow
+ +
+Docker
+ +
+AWS
+```
+
+create a reproducible ML delivery workflow.
+
+---
+
+# 🏭 Production Deployment Flow
+
+The complete deployment lifecycle can be summarized as:
+
+```text
+1. Develop
+      │
+      ▼
+2. Validate
+      │
+      ▼
+3. Test
+      │
+      ▼
+4. Train
+      │
+      ▼
+5. Track with MLflow
+      │
+      ▼
+6. Version model with DVC
+      │
+      ▼
+7. Store artifact in S3
+      │
+      ▼
+8. Build Docker image
+      │
+      ▼
+9. Push image to ECR
+      │
+      ▼
+10. Register SageMaker model
+      │
+      ▼
+11. Deploy endpoint
+      │
+      ▼
+12. Execute inference tests
+      │
+      ▼
+13. Monitor with CloudWatch
+```
+
+This represents the central philosophy of the project:
+
+> **A machine learning model is not finished when it achieves a good metric. It is finished when it can be reliably delivered, reproduced, served, monitored, and maintained.**
+
+---
+
+# 📊 Current Production Status
+
+| Component               | Status            |
+| ----------------------- | ----------------- |
+| Data ingestion          | ✅ Implemented     |
+| Data validation         | ✅ Implemented     |
+| Feature engineering     | ✅ Implemented     |
+| Model training          | ✅ Implemented     |
+| MLflow tracking         | ✅ Implemented     |
+| Model versioning        | ✅ Implemented     |
+| DVC                     | ✅ Implemented     |
+| S3 artifact storage     | ✅ Implemented     |
+| Docker containerization | ✅ Implemented     |
+| Amazon ECR              | ✅ Implemented     |
+| SageMaker deployment    | ✅ Implemented     |
+| Real-time inference     | ✅ Operational     |
+| Batch inference support | ✅ Implemented     |
+| Automated testing       | ✅ 65 tests passed |
+| Integration testing     | ✅ 2 tests passed  |
+| CloudWatch monitoring   | ✅ Implemented     |
+| 5XX alarm               | ✅ OK              |
+| Production endpoint     | ✅ InService       |
+
+---
+
+# 🧠 What This Project Demonstrates
+
+This project is intentionally broader than a traditional machine learning notebook.
+
+It demonstrates practical experience across:
+
+### Data Science
+
+* Exploratory data analysis
+* Feature engineering
+* Regression modeling
+* Model evaluation
+* Time-dependent features
+
+### Machine Learning Engineering
+
+* Modular Python architecture
+* Model serialization
+* Inference services
+* API validation
+* Testing
+* Reproducibility
+
+### MLOps
+
+* MLflow
+* DVC
+* Model versioning
+* Artifact management
+* Experiment tracking
+* CI/CD
+* Production deployment
+* Monitoring
+
+### Cloud Engineering
+
+* Amazon S3
+* Amazon ECR
+* Amazon SageMaker
+* Amazon CloudWatch
+* AWS IAM
+* OIDC-based authentication
+
+### Software Engineering
+
+* Git-based development
+* Automated testing
+* Docker
+* Modular architecture
+* Separation of concerns
+* Production-oriented project structure
+
+---
+
+# 🛣️ Roadmap
+
+The project is designed to evolve beyond the baseline implementation.
+
+## Advanced Modeling
+
+* [ ] Benchmark XGBoost
+* [ ] Benchmark LightGBM
+* [ ] Benchmark CatBoost
+* [ ] Hyperparameter optimization
+* [ ] Cross-validation strategy
+* [ ] Model selection framework
+
+## Explainability
+
+* [ ] SHAP integration
+* [ ] Global feature importance
+* [ ] Local prediction explanations
+* [ ] Model interpretability reports
+
+## Advanced MLOps
+
+* [ ] Automated model promotion
+* [ ] Model approval workflow
+* [ ] Automated rollback
+* [ ] Model registry governance
+* [ ] Automated retraining
+
+## Monitoring
+
+* [ ] Data drift detection
+* [ ] Feature distribution monitoring
+* [ ] Model performance monitoring
+* [ ] Prediction drift monitoring
+* [ ] Automated drift alerts
+
+## Product Layer
+
+* [ ] Interactive Streamlit dashboard
+* [ ] Country risk simulation interface
+* [ ] Historical risk visualization
+* [ ] Model explanation dashboard
+* [ ] REST API documentation
+
+---
+
+# 🏆 Key MLOps Practices Demonstrated
+
+The project demonstrates the following production-oriented principles:
+
+### 1. Reproducibility
+
+The same pipeline can be executed repeatedly using versioned source code, data artifacts, model artifacts, and environments.
+
+### 2. Traceability
+
+A production model can be traced through:
+
+```text
+Model Version
+      ↓
+MLflow Metadata
+      ↓
+Artifact
+      ↓
+DVC
+      ↓
+S3
+      ↓
+Docker Image
+      ↓
+SageMaker Endpoint
+```
+
+### 3. Separation of Concerns
+
+The project separates:
+
+* Data processing
+* Feature engineering
+* Model training
+* Model serving
+* Infrastructure
+* Testing
+* Monitoring
+
+### 4. Production Readiness
+
+The model is not limited to experimentation.
+
+It is exposed through a real cloud endpoint and monitored using AWS infrastructure.
+
+### 5. Automated Quality Assurance
+
+The project contains a structured test suite covering both application logic and infrastructure integration.
+
+### 6. Cloud-Native Deployment
+
+The model is packaged as a Docker container and deployed through AWS managed services.
+
+---
+
+# 🎓 Learning Outcomes
+
+This project was developed to consolidate practical knowledge in:
+
+* Machine Learning
+* Data Science
+* MLOps
+* MLflow
+* DVC
+* Docker
+* FastAPI
+* AWS
+* SageMaker
+* ECR
+* S3
+* CloudWatch
+* CI/CD
+* Model serving
+* Automated testing
+* Production ML architecture
+
+The central learning objective was to bridge the gap between:
+
+> **"I trained a machine learning model."**
+
+and:
+
+> **"I built and deployed a reproducible machine learning system."**
+
+---
+
+# 👤 Author
+
+## Anderson Cruz
+
+**Data Scientist | Machine Learning & Predictive Analytics | MLOps**
+
+Focused on building production-oriented machine learning systems combining:
+
+* Data Science
+* Machine Learning
+* Deep Learning
+* MLOps
+* Cloud Computing
+* Predictive Analytics
+
+### Profiles
+
+🐙 GitHub:
+https://github.com/AnderCruz
+
+💼 LinkedIn:
+https://linkedin.com/in/anderjcruz
+
+---
+
+# ⭐ Project Positioning
+
+This repository is part of my **Data Science and MLOps portfolio** and represents a complete production-oriented machine learning workflow.
+
+The project demonstrates that modern Data Science requires more than model development.
+
+A successful ML solution must connect:
+
+```text
+Business Problem
+       ↓
+Data
+       ↓
+Features
+       ↓
+Model
+       ↓
+Experimentation
+       ↓
+Versioning
+       ↓
+Testing
+       ↓
+Deployment
+       ↓
+Monitoring
+       ↓
+Continuous Improvement
+```
+
+**This project implements that complete lifecycle.**
